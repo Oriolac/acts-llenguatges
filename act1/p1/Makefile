@@ -1,4 +1,5 @@
-TARGET = perl
+
+TARGET = python
 all : $(TARGET)
 
 $(TARGET) : $(TARGET).l

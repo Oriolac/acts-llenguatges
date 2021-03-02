@@ -1,11 +1,9 @@
-import sys
+import keyword
 
 def main():
-    with open(sys.argv[1]) as reader:
-        lines = [line.split() for line in reader.readlines()]
-        for line in lines:
-            word = line[1][4:]
-            print(line[1], word)
+    lines = keyword.kwlist
+    words = ['(\"' + line + '\")' for line in lines]
+    print(f"{'|'.join(words)}" + " {RESERVED_KEYWORD++;}", end='')
 
 if __name__ == "__main__":
     main()
