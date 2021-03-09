@@ -2,12 +2,12 @@
 
 - [x] Reserverd Keywords
 - [] constants 
-	- [] int
-	- [] float
+	- [x] int
+	- [x] float
 	. [] string
-- [x] comment
-- [] identificadors
+- [] comment
+- [x] identificadors
 - [] operadors
 - [] simbols delimitadors `()[]""''; etc etc`
-- [] simbols de sepracio `\n \t`
+- [] simbols de separacio `\n \t`
 - 

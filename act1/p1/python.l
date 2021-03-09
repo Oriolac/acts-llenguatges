@@ -1,3 +1,4 @@
+
 %option nounput
 %option noinput
 
@@ -52,15 +53,20 @@
 unsigned char string_buffer[200];
 %}
 
-%x string
-
 %%
 
 %{
 	/* Seccio de REGLES */
 
-unsigned char *s;
 %}
+
+#.*	|
+
+\"{3}[.\n]*\"{3}			return COMMENT;
+
+" " |
+
+\t			return SEPARATING_SYMBOL;
 
 False			return KEY_False;
 None			return KEY_None;
@@ -102,10 +108,10 @@ yield			return KEY_yield;
 
 [0-9]*\.[0-9]+		return CONSTANT;
 
-#.*	|
-\"{3}.*\"{3}			return COMMENT;
+[A-Za-z_][A-Za-z0-9_]+		return IDENTIFIERS;
 
-.*			return OTHER; 
+
+.				return OTHER;
 
 %%
 
