@@ -1,5 +1,6 @@
 
 TARGET = python
+TEST:=$(shell ls test)
 all : $(TARGET)
 
 $(TARGET) : $(TARGET).l
@@ -8,3 +9,9 @@ $(TARGET) : $(TARGET).l
 
 clean:
 	rm -f *~ lex.yy.c $(TARGET)
+
+tests: clean all
+	@for filename in $(TEST); do \
+		echo "======" $$filename "======";			\
+		./python < test/$$filename; \
+	done
