@@ -1,9 +1,18 @@
-"""i'm not an identifier"""
-# me neither
-"""321"""
-# That's a comment nº1
+#jfiods
+""" i'm not an identifier 
 """
-Hi,
-It's a huge comment there.
-Well, just kidding.
+# me neither
+""" comment """
+"""
+I
+am
+a
+huge
+comment
+# that would not be a comment inside a comment.
+in
+a
+small
+file
+:D
 """

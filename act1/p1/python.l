@@ -53,20 +53,56 @@
 unsigned char string_buffer[200];
 %}
 
+%x inside_comment_large_single_quote
+%x inside_comment_large_double_quote
+%x inside_comment_short
+%x string_single_quote
+%x string_double_quote
+
 %%
 
-%{
-	/* Seccio de REGLES */
+\"{3}		BEGIN(inside_comment_large_double_quote);
 
-%}
+<inside_comment_large_double_quote>.*\"{3}	{BEGIN(0);return COMMENT;}
 
-#.*	|
+<inside_comment_large_double_quote>.*	;
 
-\"{3}[.\n]*\"{3}			return COMMENT;
+\'{3}		BEGIN(inside_comment_large_single_quote);
+
+<inside_comment_large_single_quote>.*\'{3}	{BEGIN(0);return COMMENT;}
+
+<inside_comment_large_single_quote>.*	;
+
+#.*			return COMMENT;
+
+\"			BEGIN(string_double_quote);
+
+<string_double_quote>.*\\\"		;
+
+<string_double_quote>[^\n]\"		{BEGIN(0);return CONSTANT;}
+
+<string_double_quote>\\\n		;
+
+<string_double_quote>[^\n]		;
+
+<string_double_quote>\n			{BEGIN(0);return OTHER;}
+
+\'			BEGIN(string_single_quote);
+
+<string_single_quote>.*\\\'		;
+
+<string_single_quote>[^\n]\'		{BEGIN(0);return CONSTANT;}
+
+<string_single_quote>\\\n		;
+
+<string_single_quote>[^\n]		;
+
+<string_single_quote>\n			{BEGIN(0);return OTHER;}
 
 " " |
 
 \t			return SEPARATING_SYMBOL;
+
 
 False			return KEY_False;
 None			return KEY_None;
@@ -104,12 +140,63 @@ while			return KEY_while;
 with			return KEY_with;
 yield			return KEY_yield;
 
-[0-9]+	|
+
+
+"=="		return OPERATORS;
+
+"(" 	|
+")" 	|
+"[" 	|
+"]" 	|
+"{" 	|
+"}" 	|
+","  	|
+":" 	|
+";" 	|
+"." 	|
+"@=" 	|
+"@" 	|
+"=" 	|
+"->" 	|
+"+=" 	|
+"-=" 	|
+"*=" 	|
+"/=" 	|
+"//=" 	|
+"%=" 	|
+"&=" 	|
+"|=" 	|
+"^=" 	|
+">>=" 	|
+"<<=" 	|
+"**="		return DELIMITING_SYMBOL;
+
+
+"+"		|
+"-"		|
+"*"		|
+"**"	|
+"/"		|
+"//"	|
+"%"		|
+"<<"	|
+">>"	|
+"&"		|
+"|"		|
+"^"		|
+"~"		|
+":="	|
+"<"		|
+">"		|
+"<="	|
+">="	|
+"!="		return OPERATORS;
+
+[0-9]+.?	|
 
 [0-9]*\.[0-9]+		return CONSTANT;
 
 [A-Za-z_][A-Za-z0-9_]+		return IDENTIFIERS;
-
 
 .				return OTHER;
 
@@ -120,6 +207,7 @@ yield			return KEY_yield;
 int main(){
 	int val;
 	int freq_tokens[NUM_TOKENS];
+	int total = 0;
 	char *name_tokens[NUM_TOKENS] = {
 		"Paraules reservades",
 		"Constants",
@@ -136,13 +224,15 @@ int main(){
 	while ((val=yylex())!=0) {
 		printf("%i", val);
 		if(val < NUM_RESERVED_WORDS) {
-			freq_tokens[1]++;
+			freq_tokens[0]++;
 		} else {
 			freq_tokens[val-NUM_RESERVED_WORDS - 1]++;
 		}
+		total++;
 	}
+	printf("\n");
 	for(int i=0; i < NUM_TOKENS; i++) {
-		printf("%s: %i\n", name_tokens[i], freq_tokens[i]);
+		printf("%s: %d (%f %%)\n", name_tokens[i], freq_tokens[i],  ((float) freq_tokens[i]) / total * 100);
 	}
 }
 

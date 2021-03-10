@@ -22,3 +22,6 @@ tests: clean all
 		echo "======" $$filename "======";			\
 		./python < test/$$filename; \
 	done
+
+try: clean all
+	./python

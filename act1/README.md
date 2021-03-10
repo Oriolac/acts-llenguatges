@@ -1,13 +1,12 @@
 #P1
 
 - [x] Reserverd Keywords
-- [] constants 
+- [x] constants 
 	- [x] int
 	- [x] float
-	. [] string
-- [] comment
+	. [x] string
+- [x] comment
 - [x] identificadors
-- [] operadors
-- [] simbols delimitadors `()[]""''; etc etc`
+- [x] operadors
+- [x] simbols delimitadors `()[]""''; etc etc`
 - [] simbols de separacio `\n \t`
-- 
