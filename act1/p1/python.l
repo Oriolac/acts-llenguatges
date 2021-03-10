@@ -169,7 +169,8 @@ yield			return KEY_yield;
 "^=" 	|
 ">>=" 	|
 "<<=" 	|
-"**="		return DELIMITING_SYMBOL;
+"**="	|
+"\n"	return DELIMITING_SYMBOL;
 
 
 "+"		|
@@ -222,7 +223,7 @@ int main(){
 		freq_tokens[i] = 0;
 	}
 	while ((val=yylex())!=0) {
-		printf("%i", val);
+		//printf("%i", val);
 		if(val < NUM_RESERVED_WORDS) {
 			freq_tokens[0]++;
 		} else {
