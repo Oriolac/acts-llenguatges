@@ -142,7 +142,8 @@ yield			return KEY_yield;
 
 
 
-"=="		return OPERATORS;
+"=="	|
+"@"		return OPERATORS;
 
 "(" 	|
 ")" 	|
@@ -155,7 +156,6 @@ yield			return KEY_yield;
 ";" 	|
 "." 	|
 "@=" 	|
-"@" 	|
 "=" 	|
 "->" 	|
 "+=" 	|
@@ -237,7 +237,6 @@ int main(){
 	}
 }
 
-// ; és fi d'instrucció i \n és delimitador
 
 int yywrap(){
 	return(1);

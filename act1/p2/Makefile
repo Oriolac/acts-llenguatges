@@ -1,5 +1,5 @@
 
-TARGET = python
+TARGET = p2
 TEST:=$(shell ls test)
 all : $(TARGET)
 
