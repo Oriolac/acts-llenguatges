@@ -47,7 +47,7 @@
 #define SEPARATING_SYMBOL 41
 #define OTHER 42
 
-#define NUM_RESERVED_WORDS 34
+#define NUM_RESERVED_WORDS 35
 #define NUM_TOKENS 8
 
 unsigned char string_buffer[200];
@@ -65,13 +65,18 @@ unsigned char string_buffer[200];
 
 <inside_comment_large_double_quote>.*\"{3}	{BEGIN(0);return COMMENT;}
 
-<inside_comment_large_double_quote>.*	;
+<inside_comment_large_double_quote>.*		;
+
+<inside_comment_large_double_quote>\n		;
 
 \'{3}		BEGIN(inside_comment_large_single_quote);
 
 <inside_comment_large_single_quote>.*\'{3}	{BEGIN(0);return COMMENT;}
 
 <inside_comment_large_single_quote>.*	;
+
+<inside_comment_large_single_quote>\n	;
+
 
 #.*			return COMMENT;
 
@@ -87,7 +92,7 @@ unsigned char string_buffer[200];
 
 <string_double_quote>\n			{BEGIN(0);return OTHER;}
 
-\'			BEGIN(string_single_quote);
+'			BEGIN(string_single_quote);
 
 <string_single_quote>.*\\\'		;
 
@@ -141,10 +146,6 @@ with			return KEY_with;
 yield			return KEY_yield;
 
 
-
-"=="	|
-"@"		return OPERATORS;
-
 "(" 	|
 ")" 	|
 "[" 	|
@@ -183,11 +184,13 @@ yield			return KEY_yield;
 "<<"	|
 ">>"	|
 "&"		|
+"@"		|
 "|"		|
 "^"		|
 "~"		|
 ":="	|
 "<"		|
+"=="	|
 ">"		|
 "<="	|
 ">="	|
@@ -223,17 +226,18 @@ int main(){
 		freq_tokens[i] = 0;
 	}
 	while ((val=yylex())!=0) {
-		//printf("%i", val);
+		//printf("%s", yytext);
 		if(val < NUM_RESERVED_WORDS) {
 			freq_tokens[0]++;
 		} else {
-			freq_tokens[val-NUM_RESERVED_WORDS - 1]++;
+			freq_tokens[val - NUM_RESERVED_WORDS]++;
 		}
 		total++;
 	}
 	printf("\n");
 	for(int i=0; i < NUM_TOKENS; i++) {
-		printf("%s: %d (%f %%)\n", name_tokens[i], freq_tokens[i],  ((float) freq_tokens[i]) / total * 100);
+		float percentatge = ((float) freq_tokens[i]) / total * 100;
+		printf("%s: %d (%f %%)\n", name_tokens[i], freq_tokens[i], percentatge);
 	}
 }
 

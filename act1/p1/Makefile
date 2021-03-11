@@ -17,6 +17,7 @@ test: clean all
 	printf "`tput bold`====== Testing $$filename ======`tput sgr0`\n";	\
 	./$(TARGET) < test/$$filename;	
 
+
 tests: clean all
 	@for filename in $(TEST); do \
 		echo "======" $$filename "======";			\
