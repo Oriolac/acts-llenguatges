@@ -22,11 +22,11 @@
 
 <panic>.    ;
 
+#           BEGIN(comment);
+
 <comment>[^\n]       ;
 
 <comment>\n     BEGIN(0); return '\n';
-
-#           BEGIN(comment);
 
 [A-Z]       {return LITERAL;}
 
@@ -66,7 +66,6 @@ int main() {
             printf("Error caràcter \"%c\" no vàlid a la línea %i:\n", yytext[0], num_line);
             num_line++;
             bad_lines++;
-            printf("%c", yytext[0]);
         }
 	}
     printf("Un total de %i línies errònees.\n", bad_lines);
