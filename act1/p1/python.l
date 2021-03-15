@@ -200,7 +200,7 @@ yield			return KEY_yield;
 
 [0-9]*\.[0-9]+		return CONSTANT;
 
-[A-Za-z_][A-Za-z0-9_]+		return IDENTIFIERS;
+[A-Za-z_][A-Za-z0-9_]*		return IDENTIFIERS;
 
 .				return OTHER;
 
@@ -226,7 +226,6 @@ int main(){
 		freq_tokens[i] = 0;
 	}
 	while ((val=yylex())!=0) {
-		//printf("%s", yytext);
 		if(val < NUM_RESERVED_WORDS) {
 			freq_tokens[0]++;
 		} else {
