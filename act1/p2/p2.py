@@ -43,14 +43,15 @@ class MyLexer:
     def build(self,**kwargs):
         self.lexer = lex.lex(module=self, **kwargs)
 
-m = MyLexer()
-m.build()           # Build the lexer
-while True:
-    try:
-        data = input()
-        m.lexer.input(data + '\n')
-        token = m.lexer.token()
-        while token:
+if __name__ == "__main__":
+    m = MyLexer()
+    m.build()           # Build the lexer
+    while True:
+        try:
+            data = input()
+            m.lexer.input(data + '\n')
             token = m.lexer.token()
-    except EOFError:
-        break
+            while token:
+                token = m.lexer.token()
+        except EOFError:
+            break
