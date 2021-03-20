@@ -71,17 +71,11 @@ patromacro [a-zA-Z_][a-zA-Z0-9_]*
 
 <DEFINE>\n                      {printf("Error al definir la macro.\n"); BEGIN(0);}
 
-<DEFINE>{patromacro}       {strcpy(macros_key[current_macros], yytext);}
+<DEFINE>{patromacro}       {strcpy(macros_key[current_macros], yytext);BEGIN(MACRO);}
 
-<DEFINE>[ \t]+                    {BEGIN(MACRO);}
-
-<MACRO>[ \t]+           {;}
-
-<MACRO>[^ \t\n]*         {strcpy(macros_value[current_macros], yytext); current_macros++; BEGIN(0);}
+<MACRO>[^\n]*         {strcpy(macros_value[current_macros], yytext); current_macros++; BEGIN(0);}
 
 <MACRO>\n           {printf("Error al definir la macro, falta el valor.\n"); BEGIN(0);}
-
-\n                              ;
 
 
 {patromacro}            {char value[MACROS_KEY];
@@ -94,7 +88,7 @@ patromacro [a-zA-Z_][a-zA-Z0-9_]*
                         }
                         }
 
-.                     ;
+.                     ECHO;
 
 %%
 
