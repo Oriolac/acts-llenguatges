@@ -1,12 +1,10 @@
-
 %option nounput
 %option noinput
 
 %{
 
-#define LITERAL 1
-#define IMPLICACIO 2
-#define DOBLE_IMPLICACIO 3
+#define SYMBOL 1
+#define LAMBDA 2
 #define ERROR -1
 
 #define LINE_BUFFER 200
@@ -28,17 +26,20 @@
 
 <comment>\n     BEGIN(0); return '\n';
 
-[A-Z]       {return LITERAL;}
+"BUIDA"     |
+"buida"     return LAMBDA;
 
-"!"         return '!';
+[a-d]       return SYMBOL;
 
-"^"         return '^';
+"|"         return '|';
 
-"∨"         return 'v';
+"."         return '.';
 
-"->"       return IMPLICACIO;
+"*"         return '*';
 
-"<->"       return DOBLE_IMPLICACIO;
+"+"         return '+';
+
+"?"         return '?';
 
 "("         return '(';
 
@@ -60,6 +61,7 @@ int main() {
     int num_line = 1;
     int bad_lines = 0;
     while ((val=yylex())!=0) {
+        printf("%s ", yytext);
         if (val == '\n') {
             num_line++;
         } else if (val == ERROR) {

@@ -1,0 +1,5 @@
+(A|BUIDA).C.(D.buida)?
+[a − z]+
+zabc+
+(a|Empty).c.(d.buida)?
+(a|BUIDA).c.(d.buida)?;
