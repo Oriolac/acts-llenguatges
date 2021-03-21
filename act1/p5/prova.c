@@ -1,5 +1,3 @@
-#define hola "Hola a tothom"
+#define func(a, b, c) Thats a and b and c
 
-int main() {
-    printf("%s", hola);
-}
+func(1, 2, 3)
