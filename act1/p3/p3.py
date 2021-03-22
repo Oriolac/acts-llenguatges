@@ -54,7 +54,6 @@ if __name__ == "__main__":
             m.lexer.input(data + '\n')
             token = m.lexer.token()
             while token:
-                print(token)
                 token = m.lexer.token()
         except EOFError:
             break
