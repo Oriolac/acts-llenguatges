@@ -9,3 +9,5 @@ $(TARGET) : $(TARGET).l
 clean:
 	rm -f *~ lex.yy.c $(TARGET)
 
+test: all
+	./$(TARGET) prova.c out.c

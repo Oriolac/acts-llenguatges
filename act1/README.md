@@ -11,7 +11,9 @@
   on X és el nombre de l'exercici que es vol executar. Per exemple, si es vol 
   executar l'exercici 1 s'hauria de fer:
     `make`
-    `./p1.l`
+    `./p1`
+  En cas de voler canviar la sortida estàndar, es pot realitzar:
+  `./p1 < <fitxer.c>`
   També es pot utilitzar la comanda `make tests` per executar tots els tests a l'hora,
   o `make test` per seleccionar-ne un en específic.
   
@@ -29,6 +31,7 @@
 
   - S'ha creat un generador de paraules claus per tal de ficar en el nostre analitzador totes les paraules de manera automàtica. S'ha decidit identificar una paraula clau com un token per tal d'agilitzar la lectura i quedar-se el més obert possible per modificacions en un futur.
   - En aquest analitzador, s'ha tingut en compte l'ús de les barres invertides abans de salt de línia en les strings. Exemple: 
+
 ```
 " That's a  \
 correct     \
@@ -46,6 +49,15 @@ L'exercici 3 ha estat el més fàcil de tots ja que s'han adquirit els coneixeme
 
 ## Exercici 4
 
+### Ús
+
+```
+make
+./p4 <fitxer_in> <fitxer_out>
+```
+
+### Observacions
+
 Per permetre la inclusió d'arxius, s'ha modificat el mètode yywrap, que ens permetrà controlar la pila i l'estat del buffer, per saber quan és el final d'arxiu.
 
 - Lèxic:
@@ -58,9 +70,17 @@ Per veure si és una macro definida o no a l'hora de reemplaçar-la, es busca a 
 
 ## Exercici 5
 
+### Ús
+
+```
+make
+./p4 <fitxer_in> <fitxer_out>
+```
+
+### Observacions
+
 En aquest exercici, s'inclou l'anàlisi lèxic de l'exercici anterior.
   - La funció `find_key` passa a ser `find_const_key` ja que, només en aquesta funció només es buscaran les macros constants.
-
   - Lèxic:
     - `#define <nom_macro>(<arg1>, <arg2>, ..., <arg3>) <valor>`
     - arg = `\[a-zA-Z_][a-zA-Z0-9_]*\`
@@ -87,6 +107,6 @@ El resultat correcte amb la nostra sol·lució és:
 b > 2 > 3
 ```
 
-# Link
+## Link
 
 El contingut d'aquesta pràctica i les posteriors es podrà trobar en aquest [en aquest repositori](https://github.com/Oriolac/acts-llenguatges).
