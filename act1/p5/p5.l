@@ -30,7 +30,7 @@ struct ExpansionMacro find_func_key(char text[]);
 void print_fmacro(struct ExpansionMacro fmacro);
 void add_arg(struct ExpansionMacro *fmacro, char arg[]);
 void transform_text(struct ExpansionMacro macro, char args[]);
-void replace_word(char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char text[], int num_args);
+void replace_words(char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char text[], int num_args);
 char *replace_or_repeat_word(char *tok, char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], int num_args);
 
 char filename[MAX_NAME_FILE + 1];
@@ -178,11 +178,11 @@ void transform_text(struct ExpansionMacro macro, char argstext[]) {
         tok = strtok(NULL, delim);
     }
     strcpy(text, macro.value);
-    replace_word(macro.args, arguments, text, macro.num_args);
+    replace_words(macro.args, arguments, text, macro.num_args);
     fprintf(yyout, "%s", text);
 }
 
-void replace_word(char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char text[], int num_args) {
+void replace_words(char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char text[], int num_args) {
     char *delim = " ";
     char *tok = strtok(text, delim);
     char result[MACROS_VALUE] = "";
@@ -244,8 +244,5 @@ int main( int argc, char *argv[] ) {
     yyin = fopen(argv[1], "r");
     yyout = fopen(argv[2], "w");
     yylex();
-    // for (int i = 0; i < current_const_macros; i++) {
-    //     printf("KEY: \"%s\", VALUE: \"%s\"\n", macros_const_key[i], macros_const_value[i]);
-    // }
     return 0;
 }
