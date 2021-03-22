@@ -30,7 +30,8 @@ struct ExpansionMacro find_func_key(char text[]);
 void print_fmacro(struct ExpansionMacro fmacro);
 void add_arg(struct ExpansionMacro *fmacro, char arg[]);
 void transform_text(struct ExpansionMacro macro, char args[]);
-void replace_word(char margs[], char args[], char text[]);
+void replace_word(char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char text[], int num_args);
+char *replace_or_repeat_word(char *tok, char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], int num_args);
 
 char filename[MAX_NAME_FILE + 1];
 
@@ -151,7 +152,7 @@ patromacro [a-zA-Z_][a-zA-Z0-9_]*
                         }
                         }
 
-\n                      ;
+\n                      ECHO;
 
 .                     ECHO;
 
@@ -166,7 +167,6 @@ int yywrap(){
 }
 
 void transform_text(struct ExpansionMacro macro, char argstext[]) { 
-    char current_macro_arg[MAX_LENGHT_ARG_STR];
     char *delim = ",";
     char arguments[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR];
     char *tok = strtok(argstext, delim);
@@ -178,28 +178,30 @@ void transform_text(struct ExpansionMacro macro, char argstext[]) {
         tok = strtok(NULL, delim);
     }
     strcpy(text, macro.value);
-    for(int i = 0; i < macro.num_args; ++i)
-    {
-        strcpy(current_macro_arg, macro.args[i]);
-        replace_word(current_macro_arg, arguments[i], text);
-    }
+    replace_word(macro.args, arguments, text, macro.num_args);
     fprintf(yyout, "%s", text);
 }
 
-void replace_word(char margs[], char args[], char text[]) {
+void replace_word(char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char text[], int num_args) {
     char *delim = " ";
     char *tok = strtok(text, delim);
     char result[MACROS_VALUE] = "";
     while (tok != NULL) {
+        char *word = replace_or_repeat_word(tok, margs, args, num_args);
+        strcat(result, word);
         strcat(result, " ");
-        if (strcmp(tok, margs) == 0) {
-            strcat(result, args);
-        } else {
-            strcat(result, tok);
-        }
         tok = strtok(NULL, delim);
     }
     strcpy(text, result); 
+}
+
+char *replace_or_repeat_word(char *tok, char margs[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], char args[NUM_ARGS_MACRO][MAX_LENGHT_ARG_STR], int num_args) {
+    for(int i = 0; i < num_args; i++) {
+        if (strcmp(tok, margs[i]) == 0) {
+            return args[i];
+        }
+    }
+    return tok;
 }
 
 void print_fmacro(struct ExpansionMacro fmacro) {
