@@ -1,0 +1,190 @@
+Terminals unused in grammar
+
+    '-'
+    '*'
+    '/'
+    '%'
+
+
+Grammar
+
+    0 $accept: fitxer $end
+
+    1 fitxer: sentencia
+    2       | fitxer sentencia
+
+    3 sentencia: ';'
+    4          | expr ';'
+    5          | error ';'
+
+    6 expr: '(' expr ')'
+    7     | expr '+' expr
+    8     | INTEGER
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '%' (37)
+    '(' (40) 6
+    ')' (41) 6
+    '*' (42)
+    '+' <word> (43) 7
+    '-' (45)
+    '/' (47)
+    ';' (59) 3 4 5
+    error (256) 5
+    INTEGER <valor> (258) 8
+
+
+Nonterminals, with rules where they appear
+
+    $accept (12)
+        on left: 0
+    fitxer <word> (13)
+        on left: 1 2
+        on right: 0 2
+    sentencia <word> (14)
+        on left: 3 4 5
+        on right: 1 2
+    expr <word> (15)
+        on left: 6 7 8
+        on right: 4 6 7
+
+
+State 0
+
+    0 $accept: • fitxer $end
+
+    error    shift, and go to state 1
+    INTEGER  shift, and go to state 2
+    ';'      shift, and go to state 3
+    '('      shift, and go to state 4
+
+    fitxer     go to state 5
+    sentencia  go to state 6
+    expr       go to state 7
+
+
+State 1
+
+    5 sentencia: error • ';'
+
+    ';'  shift, and go to state 8
+
+
+State 2
+
+    8 expr: INTEGER •
+
+    $default  reduce using rule 8 (expr)
+
+
+State 3
+
+    3 sentencia: ';' •
+
+    $default  reduce using rule 3 (sentencia)
+
+
+State 4
+
+    6 expr: '(' • expr ')'
+
+    INTEGER  shift, and go to state 2
+    '('      shift, and go to state 4
+
+    expr  go to state 9
+
+
+State 5
+
+    0 $accept: fitxer • $end
+    2 fitxer: fitxer • sentencia
+
+    $end     shift, and go to state 10
+    error    shift, and go to state 1
+    INTEGER  shift, and go to state 2
+    ';'      shift, and go to state 3
+    '('      shift, and go to state 4
+
+    sentencia  go to state 11
+    expr       go to state 7
+
+
+State 6
+
+    1 fitxer: sentencia •
+
+    $default  reduce using rule 1 (fitxer)
+
+
+State 7
+
+    4 sentencia: expr • ';'
+    7 expr: expr • '+' expr
+
+    '+'  shift, and go to state 12
+    ';'  shift, and go to state 13
+
+
+State 8
+
+    5 sentencia: error ';' •
+
+    $default  reduce using rule 5 (sentencia)
+
+
+State 9
+
+    6 expr: '(' expr • ')'
+    7     | expr • '+' expr
+
+    '+'  shift, and go to state 12
+    ')'  shift, and go to state 14
+
+
+State 10
+
+    0 $accept: fitxer $end •
+
+    $default  accept
+
+
+State 11
+
+    2 fitxer: fitxer sentencia •
+
+    $default  reduce using rule 2 (fitxer)
+
+
+State 12
+
+    7 expr: expr '+' • expr
+
+    INTEGER  shift, and go to state 2
+    '('      shift, and go to state 4
+
+    expr  go to state 15
+
+
+State 13
+
+    4 sentencia: expr ';' •
+
+    $default  reduce using rule 4 (sentencia)
+
+
+State 14
+
+    6 expr: '(' expr ')' •
+
+    $default  reduce using rule 6 (expr)
+
+
+State 15
+
+    7 expr: expr • '+' expr
+    7     | expr '+' expr •
+
+    $default  reduce using rule 7 (expr)
