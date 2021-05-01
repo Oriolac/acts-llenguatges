@@ -1,15 +1,12 @@
 from ply import lex, yacc
+from dataclasses import dataclass
 
-
+@dataclass
 class Expression:
-    
-    def __init__(self, isP, prioritat, expression):
-        self.isParent: bool = isP
-        self.prioritat: int = prioritat
-        self.expression: str = expression
+    has_parenthesis: bool
+    priority: int
+    expression: str
 
-    def __str__(self):
-        return f"[tP: {self.isParent}, pr: {self.prioritat}, ex: {self.expression}]"
 
 class Parser:
 
@@ -61,7 +58,9 @@ class Parser:
         if self.is_integer(p):
             p[0] = Expression(False, 0, f"{p[1]}")  
         elif self.has_parenthesis(p):
-            p[0] = Expression(True, p[2].prioritat, p[2].expression)
+            p[0] = Expression(True, p[2].priority, p[2].expression)
+        else:
+            print("Impossible state.")
 
 
     def p_expr_prioritat_alta(self, p):
@@ -70,12 +69,9 @@ class Parser:
               | expr DIV expr
               | expr MOD expr
         """
-        left, right = p[1].expression, p[3].expression
-        if p[1].isParent and p[1].prioritat < 1:
-            left = "(" + p[1].expression + ")"
-        if p[3].isParent and p[3].prioritat < 1:
-            right = "(" + p[3].expression + ")"
-        p[0] = Expression(False, 1, f"{left} {p[2]} {right}")
+        p[1].expression = self.get_correct_expression(p[1], priority_op=1)
+        p[3].expression = self.get_correct_expression(p[3], priority_op=1)
+        p[0] = Expression(False, 1, f"{p[1].expression} {p[2]} {p[3].expression}")
 
 
     def p_expr_prioritat_baixa(self, p):
@@ -84,6 +80,9 @@ class Parser:
                 |   expr RESTA expr
         """
         p[0] = Expression(False, 0, f"{p[1].expression} {p[2]} {p[3].expression}")
+
+    def get_correct_expression(self, expr: Expression, priority_op: int):
+        return "(" + expr.expression + ")" if expr.has_parenthesis and expr.priority < priority_op else expr.expression
 
     def is_integer(self,p):
         return len(p) == 2

@@ -14,7 +14,8 @@ extern int nlin;
 
 %union{int valor;
     char word[20];
-    struct stack{
+    struct stack
+    {
         char word[20];
         struct stack *below;
     };}
