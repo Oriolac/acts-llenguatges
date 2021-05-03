@@ -9,7 +9,6 @@ class Estat:
     simbol: str
     estats: List[Estat]
 
-
 class Parser:
 
     def __init__(self):
@@ -104,7 +103,7 @@ class Parser:
         inter = Estat(self.num_estats, "LAMBDA", [p[3][0]])
         p[1][-1].estats = [inter]
         self.estats[self.num_estats] = inter
-        p[0] = p[1] + [inter] + p[3]
+        p[0] = [p[1][0]] + [p[3][-1]]
 
     def p_expr_Kleene(self, p):
         """
@@ -151,8 +150,8 @@ class Parser:
         """
         self.num_estats += 1
         estat = Estat(self.num_estats, p[1], None)
-        p[0] = [estat]
         self.estats[self.num_estats] = estat
+        p[0] = [estat]
 
     def run(self):
         while True:
