@@ -1,6 +1,6 @@
 from ply import lex, yacc
 from collections import defaultdict
-import parser
+
 
 class Parser:
 
@@ -9,7 +9,7 @@ class Parser:
         self.yacc = yacc.yacc(module=self)
         self.num_line = 1
         self.variables = defaultdict()
-        self.binary_operations: {
+        self.binary_operations = {
             "+": lambda x, y: x + y,
             "-": lambda x, y: x - y,
             "*": lambda x, y: x * y,
@@ -21,12 +21,12 @@ class Parser:
             ">>":  lambda x, y: x >> y,
             "<<": lambda x, y: x << y,
         }
-        self.unary_operations: {
+        self.unary_operations = {
             "+": lambda x: x,
             "-": lambda x: -x,
             "~": lambda x: ~x,
         }
-    
+
     tokens = ('VINTEGER', 'VFLOAT', 'INTEGER', 'FLOAT', 'SUMA', 'SUMA_UNARIA','RESTA', 'RESTA_UNARIA', 'MULT', 'DIV', 'MOD', 'CA1', 'RSHIFT', 'LSHIFT', 'AND', 'OR', 'XOR')
     literals = (';', '=')
 
@@ -36,7 +36,7 @@ class Parser:
     t_FLOAT = r'\d+\.\d*'
     t_SUMA = r'\+'
     t_RESTA = r'-'
-    t_RESTA_UNARIA = r'-'
+    #t_RESTA_UNARIA = r'-'
     t_MULT = r'\*'
     t_DIV = r'\/'
     t_MOD = r'%'
@@ -60,7 +60,7 @@ class Parser:
         ('left', 'MULT', 'DIV', 'MOD'),
         ('right', 'RESTA_UNARIA', 'SUMA_UNARIA'),
     )
-    
+
     def p_sentence(self, p):
         """
         sentence :  empty ';'
@@ -68,7 +68,11 @@ class Parser:
                     | print ';'
         """
         self.num_line += 1
-    
+
+    def p_empty(self, p):
+        """empty :"""
+        pass
+
     def p_print(self, p):
         """
         print : expression
@@ -84,11 +88,11 @@ class Parser:
 
     def p_assignment(self, p):
         """
-        assignment :    VINTEGER = intExpression
-                        | VFLOAT = floatExpression
+        assignment :    VINTEGER '=' intExpression
+                        | VFLOAT '=' floatExpression
         """
-        variables[p[1]] = p[3]
-        
+        self.variables[p[1]] = p[3]
+
     def p_intExpression_binary(self, p):
         """
         intExpression : intExpression SUMA intExpression
@@ -117,16 +121,20 @@ class Parser:
     def p_intExpression_integer(self, p):
         """
         intExpression : INTEGER
+                        | VINTEGER
         """
-        return int(p[1])
+        if p[1] in self.variables.keys():
+            p[0] = self.variables[p[1]]
+        else:
+            p[0] = int(p[1])
 
-    def p_intExpression_binary(self, p):
+    def p_floatExpression_binary(self, p):
         """
-        intExpression : intExpression SUMA intExpression
-                        | intExpression RESTA intExpression
-                        | intExpression MULT intExpression
-                        | intExpression DIV intExpression
-                        | intExpression MOD intExpression
+        floatExpression : floatExpression SUMA floatExpression
+                        | floatExpression RESTA floatExpression
+                        | floatExpression MULT floatExpression
+                        | floatExpression DIV floatExpression
+                        | floatExpression MOD floatExpression
         """
         if (p[2] == "/" and int(p[3]) == 0):
             print("ERROR")
@@ -142,8 +150,13 @@ class Parser:
     def p_floatExpression_float(self, p):
         """
         floatExpression : FLOAT
+                        | VFLOAT
         """
-        return float(p[1])
+
+        if p[1] in self.variables.keys():
+            p[0] = self.variables[p[1]]
+        else:
+            p[0] = float(p[1])
 
     def run(self):
         while True:
