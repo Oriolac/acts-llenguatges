@@ -36,24 +36,18 @@ class BinaryNode(Node):
 
 
     def delete_parents(self, must_remove=False) -> Node:
-        print(f"BinaryNode {self} -> delete_parents")
         self.left = self.check_parent(self.left, self.op)
         self.right = self.check_parent(self.right, self.op)
         return self
 
 
     def check_parent(self, node: Node, op: str):
-        print(f"BinaryNode {self} -> check_parents: {node}")
         if isinstance(node, PNode):
-            print(f"BinaryNode {self} -> check_parents: {node} is PNode")
             if  not isinstance(node.child, BinaryNode):
-                print(f"BinaryNode {self} -> check_parents: child {node.child} is not BinaryNode")
                 return node.child.delete_parents()
             elif priority_ops[self.op] == priority_ops[node.child.op]:
-                print(f"BinaryNode {self} -> check_parents: child {node.child} is BinaryNode ==")
                 return node.child.delete_parents(True)
             else:
-                print(f"BinaryNode {self} -> check_parents: child {node.child} is BinaryNode !=")
                 return PNode(node.child.delete_parents())
         return node.delete_parents()
 
@@ -98,7 +92,6 @@ class PNode(Node):
         return PNode(self.child.curry_neg(last_neg))
 
     def delete_parents(self, must_remove=False) -> Node:
-        print(f"PNode {self} -> delete_parents")
         if must_remove:
             return self.child.delete_parents()
         if isinstance(self.child, PNode):
@@ -150,9 +143,8 @@ class Parser:
         sentence : expr ';'
         """
         res = p[1].curry_neg()
-        print("BEFORE: ", res)
         res = res.delete_parents()
-        print("AFTER: ", res)
+        print(res)
         self.num_line += 1
 
     def p_expr_conjs(self, p):
