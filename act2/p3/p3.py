@@ -36,6 +36,13 @@ class Parser:
         ('left', 'MULT', 'DIV', 'MOD')
     )
 
+    def p_calculadora(self, p):
+        """
+        calculadora :   calculadora sentence
+                        | empty
+        """
+        pass
+
     def p_sentencia(self, p):
         """
         sentence : expr ';'
