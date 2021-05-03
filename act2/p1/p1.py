@@ -21,13 +21,8 @@ class Parser:
             ">>":  lambda x, y: x >> y,
             "<<": lambda x, y: x << y,
         }
-        self.unary_operations = {
-            "+": lambda x: x,
-            "-": lambda x: -x,
-            "~": lambda x: ~x,
-        }
 
-    tokens = ('VINTEGER', 'VFLOAT', 'INTEGER', 'FLOAT', 'SUMA', 'SUMA_UNARIA','RESTA', 'RESTA_UNARIA', 'MULT', 'DIV', 'MOD', 'CA1', 'RSHIFT', 'LSHIFT', 'AND', 'OR', 'XOR')
+    tokens = ('VINTEGER', 'VFLOAT', 'INTEGER', 'FLOAT', 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'CA1', 'RSHIFT', 'LSHIFT', 'AND', 'OR', 'XOR')
     literals = (';', '=')
 
     t_VINTEGER = r'[a-z]'
@@ -36,7 +31,6 @@ class Parser:
     t_FLOAT = r'\d+\.\d*'
     t_SUMA = r'\+'
     t_RESTA = r'-'
-    t_RESTA_UNARIA = r'-'
     t_MULT = r'\*'
     t_DIV = r'\/'
     t_MOD = r'%'
@@ -58,7 +52,6 @@ class Parser:
     precedence = (
         ('left', 'SUMA', 'RESTA'),
         ('left', 'MULT', 'DIV', 'MOD'),
-        ('right', 'RESTA_UNARIA', 'SUMA_UNARIA'),
     )
 
     def p_sentence(self, p):
@@ -105,18 +98,21 @@ class Parser:
                         | intExpression XOR intExpression
                         | intExpression RSHIFT intExpression
                         | intExpression LSHIFT intExpression
+                        | RESTA intExpression
+                        | SUMA intExpression
         """
-        if (p[2] == "/" and int(p[3]) == 0):
+        if len(p) == 3:
+            p[0] = self.binary_operations[p[1]](0, p[2])
+        elif p[2] == "/" and int(p[3]) == 0:
             print("ERROR")
-        p[0] = self.binary_operations[p[2]](p[1], p[3])
+        else:
+            p[0] = self.binary_operations[p[2]](p[1], p[3])
 
     def p_intExpression_unary(self, p):
         """
-        intExpression : RESTA_UNARIA intExpression
-                        | SUMA_UNARIA intExpression
-                        | CA1 intExpression
+        intExpression : CA1 intExpression
         """
-        p[0] = self.unary_operations[p[1]](p[2])
+        p[0] = ~p[2]
 
     def p_intExpression_integer(self, p):
         """
@@ -135,17 +131,15 @@ class Parser:
                         | floatExpression MULT floatExpression
                         | floatExpression DIV floatExpression
                         | floatExpression MOD floatExpression
+                        | RESTA floatExpression
+                        | SUMA floatExpression
         """
-        if (p[2] == "/" and int(p[3]) == 0):
+        if len(p) == 3:
+            p[0] = self.binary_operations[p[1]](0, p[2])
+        elif (p[2] == "/" and int(p[3]) == 0):
             print("ERROR")
-        p[0] = self.binary_operations[p[2]](p[1], p[3])
-
-    def p_floatExpression_unary(self, p):
-        """
-        floatExpression : RESTA_UNARIA floatExpression
-                        | SUMA_UNARIA floatExpression
-        """
-        p[0] = self.unary_operations[p[1]](p[2])
+        else:
+            p[0] = self.binary_operations[p[2]](p[1], p[3])
 
     def p_floatExpression_float(self, p):
         """
