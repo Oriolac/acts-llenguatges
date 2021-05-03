@@ -36,7 +36,7 @@ class Parser:
     t_FLOAT = r'\d+\.\d*'
     t_SUMA = r'\+'
     t_RESTA = r'-'
-    #t_RESTA_UNARIA = r'-'
+    t_RESTA_UNARIA = r'-'
     t_MULT = r'\*'
     t_DIV = r'\/'
     t_MOD = r'%'
