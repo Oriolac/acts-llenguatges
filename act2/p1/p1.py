@@ -50,9 +50,20 @@ class Parser:
         t.lexer.skip(1)
 
     precedence = (
+        ('right', 'XOR'),
+        ('left', 'OR', 'CA1'),
+        ('left', 'AND'),
+        ('left', 'RSHIFT', 'LSHIFT'),
         ('left', 'SUMA', 'RESTA'),
         ('left', 'MULT', 'DIV', 'MOD'),
+        ('right', 'USUMA', 'URESTA'),
     )
+
+    def p_calculadora(self, p):
+        """
+        calculadora :   calculadora sentence 
+                        | empty
+        """
 
     def p_sentence(self, p):
         """
@@ -98,8 +109,8 @@ class Parser:
                         | intExpression XOR intExpression
                         | intExpression RSHIFT intExpression
                         | intExpression LSHIFT intExpression
-                        | RESTA intExpression
-                        | SUMA intExpression
+                        | RESTA intExpression  %prec URESTA
+                        | SUMA intExpression %prec USUMA
         """
         if len(p) == 3:
             p[0] = self.binary_operations[p[1]](0, p[2])
@@ -117,12 +128,17 @@ class Parser:
     def p_intExpression_integer(self, p):
         """
         intExpression : INTEGER
-                        | VINTEGER
+        """
+        p[0] = int(p[1])
+
+    def p_intExpression_variable(self, p):
+        """
+        intExpression : VINTEGER
         """
         if p[1] in self.variables.keys():
             p[0] = self.variables[p[1]]
         else:
-            p[0] = int(p[1])
+            print(f"Not found variable {p[1]}!")
 
     def p_floatExpression_binary(self, p):
         """
@@ -131,8 +147,8 @@ class Parser:
                         | floatExpression MULT floatExpression
                         | floatExpression DIV floatExpression
                         | floatExpression MOD floatExpression
-                        | RESTA floatExpression
-                        | SUMA floatExpression
+                        | RESTA floatExpression %prec URESTA
+                        | SUMA floatExpression %prec USUMA
         """
         if len(p) == 3:
             p[0] = self.binary_operations[p[1]](0, p[2])
@@ -144,13 +160,17 @@ class Parser:
     def p_floatExpression_float(self, p):
         """
         floatExpression : FLOAT
-                        | VFLOAT
         """
+        p[0] = float(p[1])
 
+    def p_floatExpression_variable(self, p):
+        """
+        floatExpression : VFLOAT
+        """
         if p[1] in self.variables.keys():
             p[0] = self.variables[p[1]]
         else:
-            p[0] = float(p[1])
+            print(f"Not found variable {p[1]}!")
 
     def run(self):
         while True:
@@ -161,5 +181,6 @@ class Parser:
             if not s:
                 continue
             yacc.parse(s)
+        print('\n'.join(map(lambda x: f"{str(x[0])} : {str(x[1])}" , self.variables.items())))
 
 Parser().run()
