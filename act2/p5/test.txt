@@ -1,0 +1,9 @@
+A -> B;
+A <-> B;
+!A <-> B;
+!A <-> B ^ C;
+!A <-> B v C;
+!D ^ !A <-> B ^ C;
+D v !A <-> B v C;
+D v (!A <-> B) v C;
+D ^ (!A <-> B) ^ C;

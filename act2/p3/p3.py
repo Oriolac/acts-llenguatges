@@ -63,7 +63,7 @@ class Parser:
               | INTEGER
         """
         if self.is_integer(p):
-            p[0] = Expression(False, 0, f"{p[1]}")  
+            p[0] = Expression(False, 3, f"{p[1]}")  
         elif self.has_parenthesis(p):
             p[0] = Expression(True, p[2].priority, p[2].expression)
         else:
@@ -89,7 +89,7 @@ class Parser:
         p[0] = Expression(False, 0, f"{p[1].expression} {p[2]} {p[3].expression}")
 
     def get_correct_expression(self, expr: Expression, priority_op: int):
-        return "(" + expr.expression + ")" if expr.has_parenthesis and expr.priority != priority_op else expr.expression
+        return "(" + expr.expression + ")" if expr.has_parenthesis and expr.priority < priority_op else expr.expression
 
     def is_integer(self,p):
         return len(p) == 2

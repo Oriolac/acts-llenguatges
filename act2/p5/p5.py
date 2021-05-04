@@ -56,7 +56,7 @@ class Parser:
         """
         expr : NEG expr
         """
-        p[0] = f"{p[2]}"
+        p[0] = f"!{p[2]}"
 
     def p_expr_implies(self, p):
         """ 

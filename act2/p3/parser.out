@@ -2,360 +2,399 @@ Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
 Grammar
 
-Rule 0     S' -> sentence
-Rule 1     sentence -> expr ;
-Rule 2     sentence -> empty ;
-Rule 3     expr -> ( expr )
-Rule 4     expr -> INTEGER
-Rule 5     expr -> expr MULT expr
-Rule 6     expr -> expr DIV expr
-Rule 7     expr -> expr MOD expr
-Rule 8     expr -> expr SUMA expr
-Rule 9     expr -> expr RESTA expr
-Rule 10    empty -> <empty>
+Rule 0     S' -> calculadora
+Rule 1     calculadora -> calculadora sentence
+Rule 2     calculadora -> empty
+Rule 3     sentence -> expr ;
+Rule 4     sentence -> empty ;
+Rule 5     expr -> ( expr )
+Rule 6     expr -> INTEGER
+Rule 7     expr -> expr MULT expr
+Rule 8     expr -> expr DIV expr
+Rule 9     expr -> expr MOD expr
+Rule 10    expr -> expr SUMA expr
+Rule 11    expr -> expr RESTA expr
+Rule 12    empty -> <empty>
 
 Terminals, with rules where they appear
 
-(                    : 3
-)                    : 3
-;                    : 1 2
-DIV                  : 6
-INTEGER              : 4
-MOD                  : 7
-MULT                 : 5
-RESTA                : 9
-SUMA                 : 8
+(                    : 5
+)                    : 5
+;                    : 3 4
+DIV                  : 8
+INTEGER              : 6
+MOD                  : 9
+MULT                 : 7
+RESTA                : 11
+SUMA                 : 10
 error                : 
 
 Nonterminals, with rules where they appear
 
-empty                : 2
-expr                 : 1 3 5 5 6 6 7 7 8 8 9 9
-sentence             : 0
+calculadora          : 1 0
+empty                : 2 4
+expr                 : 3 5 7 7 8 8 9 9 10 10 11 11
+sentence             : 1
 
 Parsing method: LALR
 
 state 0
 
-    (0) S' -> . sentence
-    (1) sentence -> . expr ;
-    (2) sentence -> . empty ;
-    (3) expr -> . ( expr )
-    (4) expr -> . INTEGER
-    (5) expr -> . expr MULT expr
-    (6) expr -> . expr DIV expr
-    (7) expr -> . expr MOD expr
-    (8) expr -> . expr SUMA expr
-    (9) expr -> . expr RESTA expr
-    (10) empty -> .
+    (0) S' -> . calculadora
+    (1) calculadora -> . calculadora sentence
+    (2) calculadora -> . empty
+    (12) empty -> .
 
-    (               shift and go to state 4
-    INTEGER         shift and go to state 5
-    ;               reduce using rule 10 (empty -> .)
+    (               reduce using rule 12 (empty -> .)
+    INTEGER         reduce using rule 12 (empty -> .)
+    $end            reduce using rule 12 (empty -> .)
+    ;               reduce using rule 12 (empty -> .)
 
-    sentence                       shift and go to state 1
-    expr                           shift and go to state 2
-    empty                          shift and go to state 3
+    calculadora                    shift and go to state 1
+    empty                          shift and go to state 2
 
 state 1
 
-    (0) S' -> sentence .
+    (0) S' -> calculadora .
+    (1) calculadora -> calculadora . sentence
+    (3) sentence -> . expr ;
+    (4) sentence -> . empty ;
+    (5) expr -> . ( expr )
+    (6) expr -> . INTEGER
+    (7) expr -> . expr MULT expr
+    (8) expr -> . expr DIV expr
+    (9) expr -> . expr MOD expr
+    (10) expr -> . expr SUMA expr
+    (11) expr -> . expr RESTA expr
+    (12) empty -> .
 
+    (               shift and go to state 6
+    INTEGER         shift and go to state 7
+    ;               reduce using rule 12 (empty -> .)
 
+    sentence                       shift and go to state 3
+    expr                           shift and go to state 4
+    empty                          shift and go to state 5
 
 state 2
 
-    (1) sentence -> expr . ;
-    (5) expr -> expr . MULT expr
-    (6) expr -> expr . DIV expr
-    (7) expr -> expr . MOD expr
-    (8) expr -> expr . SUMA expr
-    (9) expr -> expr . RESTA expr
+    (2) calculadora -> empty .
 
-    ;               shift and go to state 6
-    MULT            shift and go to state 7
-    DIV             shift and go to state 8
-    MOD             shift and go to state 9
-    SUMA            shift and go to state 10
-    RESTA           shift and go to state 11
+    (               reduce using rule 2 (calculadora -> empty .)
+    INTEGER         reduce using rule 2 (calculadora -> empty .)
+    $end            reduce using rule 2 (calculadora -> empty .)
+    ;               reduce using rule 2 (calculadora -> empty .)
 
 
 state 3
 
-    (2) sentence -> empty . ;
+    (1) calculadora -> calculadora sentence .
 
-    ;               shift and go to state 12
+    (               reduce using rule 1 (calculadora -> calculadora sentence .)
+    INTEGER         reduce using rule 1 (calculadora -> calculadora sentence .)
+    $end            reduce using rule 1 (calculadora -> calculadora sentence .)
+    ;               reduce using rule 1 (calculadora -> calculadora sentence .)
 
 
 state 4
 
-    (3) expr -> ( . expr )
-    (3) expr -> . ( expr )
-    (4) expr -> . INTEGER
-    (5) expr -> . expr MULT expr
-    (6) expr -> . expr DIV expr
-    (7) expr -> . expr MOD expr
-    (8) expr -> . expr SUMA expr
-    (9) expr -> . expr RESTA expr
+    (3) sentence -> expr . ;
+    (7) expr -> expr . MULT expr
+    (8) expr -> expr . DIV expr
+    (9) expr -> expr . MOD expr
+    (10) expr -> expr . SUMA expr
+    (11) expr -> expr . RESTA expr
 
-    (               shift and go to state 4
-    INTEGER         shift and go to state 5
+    ;               shift and go to state 8
+    MULT            shift and go to state 9
+    DIV             shift and go to state 10
+    MOD             shift and go to state 11
+    SUMA            shift and go to state 12
+    RESTA           shift and go to state 13
 
-    expr                           shift and go to state 13
 
 state 5
 
-    (4) expr -> INTEGER .
+    (4) sentence -> empty . ;
 
-    ;               reduce using rule 4 (expr -> INTEGER .)
-    MULT            reduce using rule 4 (expr -> INTEGER .)
-    DIV             reduce using rule 4 (expr -> INTEGER .)
-    MOD             reduce using rule 4 (expr -> INTEGER .)
-    SUMA            reduce using rule 4 (expr -> INTEGER .)
-    RESTA           reduce using rule 4 (expr -> INTEGER .)
-    )               reduce using rule 4 (expr -> INTEGER .)
+    ;               shift and go to state 14
 
 
 state 6
 
-    (1) sentence -> expr ; .
+    (5) expr -> ( . expr )
+    (5) expr -> . ( expr )
+    (6) expr -> . INTEGER
+    (7) expr -> . expr MULT expr
+    (8) expr -> . expr DIV expr
+    (9) expr -> . expr MOD expr
+    (10) expr -> . expr SUMA expr
+    (11) expr -> . expr RESTA expr
 
-    $end            reduce using rule 1 (sentence -> expr ; .)
-
-
-state 7
-
-    (5) expr -> expr MULT . expr
-    (3) expr -> . ( expr )
-    (4) expr -> . INTEGER
-    (5) expr -> . expr MULT expr
-    (6) expr -> . expr DIV expr
-    (7) expr -> . expr MOD expr
-    (8) expr -> . expr SUMA expr
-    (9) expr -> . expr RESTA expr
-
-    (               shift and go to state 4
-    INTEGER         shift and go to state 5
-
-    expr                           shift and go to state 14
-
-state 8
-
-    (6) expr -> expr DIV . expr
-    (3) expr -> . ( expr )
-    (4) expr -> . INTEGER
-    (5) expr -> . expr MULT expr
-    (6) expr -> . expr DIV expr
-    (7) expr -> . expr MOD expr
-    (8) expr -> . expr SUMA expr
-    (9) expr -> . expr RESTA expr
-
-    (               shift and go to state 4
-    INTEGER         shift and go to state 5
+    (               shift and go to state 6
+    INTEGER         shift and go to state 7
 
     expr                           shift and go to state 15
 
+state 7
+
+    (6) expr -> INTEGER .
+
+    ;               reduce using rule 6 (expr -> INTEGER .)
+    MULT            reduce using rule 6 (expr -> INTEGER .)
+    DIV             reduce using rule 6 (expr -> INTEGER .)
+    MOD             reduce using rule 6 (expr -> INTEGER .)
+    SUMA            reduce using rule 6 (expr -> INTEGER .)
+    RESTA           reduce using rule 6 (expr -> INTEGER .)
+    )               reduce using rule 6 (expr -> INTEGER .)
+
+
+state 8
+
+    (3) sentence -> expr ; .
+
+    (               reduce using rule 3 (sentence -> expr ; .)
+    INTEGER         reduce using rule 3 (sentence -> expr ; .)
+    $end            reduce using rule 3 (sentence -> expr ; .)
+    ;               reduce using rule 3 (sentence -> expr ; .)
+
+
 state 9
 
-    (7) expr -> expr MOD . expr
-    (3) expr -> . ( expr )
-    (4) expr -> . INTEGER
-    (5) expr -> . expr MULT expr
-    (6) expr -> . expr DIV expr
-    (7) expr -> . expr MOD expr
-    (8) expr -> . expr SUMA expr
-    (9) expr -> . expr RESTA expr
+    (7) expr -> expr MULT . expr
+    (5) expr -> . ( expr )
+    (6) expr -> . INTEGER
+    (7) expr -> . expr MULT expr
+    (8) expr -> . expr DIV expr
+    (9) expr -> . expr MOD expr
+    (10) expr -> . expr SUMA expr
+    (11) expr -> . expr RESTA expr
 
-    (               shift and go to state 4
-    INTEGER         shift and go to state 5
+    (               shift and go to state 6
+    INTEGER         shift and go to state 7
 
     expr                           shift and go to state 16
 
 state 10
 
-    (8) expr -> expr SUMA . expr
-    (3) expr -> . ( expr )
-    (4) expr -> . INTEGER
-    (5) expr -> . expr MULT expr
-    (6) expr -> . expr DIV expr
-    (7) expr -> . expr MOD expr
-    (8) expr -> . expr SUMA expr
-    (9) expr -> . expr RESTA expr
+    (8) expr -> expr DIV . expr
+    (5) expr -> . ( expr )
+    (6) expr -> . INTEGER
+    (7) expr -> . expr MULT expr
+    (8) expr -> . expr DIV expr
+    (9) expr -> . expr MOD expr
+    (10) expr -> . expr SUMA expr
+    (11) expr -> . expr RESTA expr
 
-    (               shift and go to state 4
-    INTEGER         shift and go to state 5
+    (               shift and go to state 6
+    INTEGER         shift and go to state 7
 
     expr                           shift and go to state 17
 
 state 11
 
-    (9) expr -> expr RESTA . expr
-    (3) expr -> . ( expr )
-    (4) expr -> . INTEGER
-    (5) expr -> . expr MULT expr
-    (6) expr -> . expr DIV expr
-    (7) expr -> . expr MOD expr
-    (8) expr -> . expr SUMA expr
-    (9) expr -> . expr RESTA expr
+    (9) expr -> expr MOD . expr
+    (5) expr -> . ( expr )
+    (6) expr -> . INTEGER
+    (7) expr -> . expr MULT expr
+    (8) expr -> . expr DIV expr
+    (9) expr -> . expr MOD expr
+    (10) expr -> . expr SUMA expr
+    (11) expr -> . expr RESTA expr
 
-    (               shift and go to state 4
-    INTEGER         shift and go to state 5
+    (               shift and go to state 6
+    INTEGER         shift and go to state 7
 
     expr                           shift and go to state 18
 
 state 12
 
-    (2) sentence -> empty ; .
+    (10) expr -> expr SUMA . expr
+    (5) expr -> . ( expr )
+    (6) expr -> . INTEGER
+    (7) expr -> . expr MULT expr
+    (8) expr -> . expr DIV expr
+    (9) expr -> . expr MOD expr
+    (10) expr -> . expr SUMA expr
+    (11) expr -> . expr RESTA expr
 
-    $end            reduce using rule 2 (sentence -> empty ; .)
+    (               shift and go to state 6
+    INTEGER         shift and go to state 7
 
+    expr                           shift and go to state 19
 
 state 13
 
-    (3) expr -> ( expr . )
-    (5) expr -> expr . MULT expr
-    (6) expr -> expr . DIV expr
-    (7) expr -> expr . MOD expr
-    (8) expr -> expr . SUMA expr
-    (9) expr -> expr . RESTA expr
+    (11) expr -> expr RESTA . expr
+    (5) expr -> . ( expr )
+    (6) expr -> . INTEGER
+    (7) expr -> . expr MULT expr
+    (8) expr -> . expr DIV expr
+    (9) expr -> . expr MOD expr
+    (10) expr -> . expr SUMA expr
+    (11) expr -> . expr RESTA expr
 
-    )               shift and go to state 19
-    MULT            shift and go to state 7
-    DIV             shift and go to state 8
-    MOD             shift and go to state 9
-    SUMA            shift and go to state 10
-    RESTA           shift and go to state 11
+    (               shift and go to state 6
+    INTEGER         shift and go to state 7
 
+    expr                           shift and go to state 20
 
 state 14
 
-    (5) expr -> expr MULT expr .
-    (5) expr -> expr . MULT expr
-    (6) expr -> expr . DIV expr
-    (7) expr -> expr . MOD expr
-    (8) expr -> expr . SUMA expr
-    (9) expr -> expr . RESTA expr
+    (4) sentence -> empty ; .
 
-    ;               reduce using rule 5 (expr -> expr MULT expr .)
-    MULT            reduce using rule 5 (expr -> expr MULT expr .)
-    DIV             reduce using rule 5 (expr -> expr MULT expr .)
-    MOD             reduce using rule 5 (expr -> expr MULT expr .)
-    SUMA            reduce using rule 5 (expr -> expr MULT expr .)
-    RESTA           reduce using rule 5 (expr -> expr MULT expr .)
-    )               reduce using rule 5 (expr -> expr MULT expr .)
-
-  ! MULT            [ shift and go to state 7 ]
-  ! DIV             [ shift and go to state 8 ]
-  ! MOD             [ shift and go to state 9 ]
-  ! SUMA            [ shift and go to state 10 ]
-  ! RESTA           [ shift and go to state 11 ]
+    (               reduce using rule 4 (sentence -> empty ; .)
+    INTEGER         reduce using rule 4 (sentence -> empty ; .)
+    $end            reduce using rule 4 (sentence -> empty ; .)
+    ;               reduce using rule 4 (sentence -> empty ; .)
 
 
 state 15
 
-    (6) expr -> expr DIV expr .
-    (5) expr -> expr . MULT expr
-    (6) expr -> expr . DIV expr
-    (7) expr -> expr . MOD expr
-    (8) expr -> expr . SUMA expr
-    (9) expr -> expr . RESTA expr
+    (5) expr -> ( expr . )
+    (7) expr -> expr . MULT expr
+    (8) expr -> expr . DIV expr
+    (9) expr -> expr . MOD expr
+    (10) expr -> expr . SUMA expr
+    (11) expr -> expr . RESTA expr
 
-    ;               reduce using rule 6 (expr -> expr DIV expr .)
-    MULT            reduce using rule 6 (expr -> expr DIV expr .)
-    DIV             reduce using rule 6 (expr -> expr DIV expr .)
-    MOD             reduce using rule 6 (expr -> expr DIV expr .)
-    SUMA            reduce using rule 6 (expr -> expr DIV expr .)
-    RESTA           reduce using rule 6 (expr -> expr DIV expr .)
-    )               reduce using rule 6 (expr -> expr DIV expr .)
-
-  ! MULT            [ shift and go to state 7 ]
-  ! DIV             [ shift and go to state 8 ]
-  ! MOD             [ shift and go to state 9 ]
-  ! SUMA            [ shift and go to state 10 ]
-  ! RESTA           [ shift and go to state 11 ]
+    )               shift and go to state 21
+    MULT            shift and go to state 9
+    DIV             shift and go to state 10
+    MOD             shift and go to state 11
+    SUMA            shift and go to state 12
+    RESTA           shift and go to state 13
 
 
 state 16
 
-    (7) expr -> expr MOD expr .
-    (5) expr -> expr . MULT expr
-    (6) expr -> expr . DIV expr
-    (7) expr -> expr . MOD expr
-    (8) expr -> expr . SUMA expr
-    (9) expr -> expr . RESTA expr
+    (7) expr -> expr MULT expr .
+    (7) expr -> expr . MULT expr
+    (8) expr -> expr . DIV expr
+    (9) expr -> expr . MOD expr
+    (10) expr -> expr . SUMA expr
+    (11) expr -> expr . RESTA expr
 
-    ;               reduce using rule 7 (expr -> expr MOD expr .)
-    MULT            reduce using rule 7 (expr -> expr MOD expr .)
-    DIV             reduce using rule 7 (expr -> expr MOD expr .)
-    MOD             reduce using rule 7 (expr -> expr MOD expr .)
-    SUMA            reduce using rule 7 (expr -> expr MOD expr .)
-    RESTA           reduce using rule 7 (expr -> expr MOD expr .)
-    )               reduce using rule 7 (expr -> expr MOD expr .)
+    ;               reduce using rule 7 (expr -> expr MULT expr .)
+    MULT            reduce using rule 7 (expr -> expr MULT expr .)
+    DIV             reduce using rule 7 (expr -> expr MULT expr .)
+    MOD             reduce using rule 7 (expr -> expr MULT expr .)
+    SUMA            reduce using rule 7 (expr -> expr MULT expr .)
+    RESTA           reduce using rule 7 (expr -> expr MULT expr .)
+    )               reduce using rule 7 (expr -> expr MULT expr .)
 
-  ! MULT            [ shift and go to state 7 ]
-  ! DIV             [ shift and go to state 8 ]
-  ! MOD             [ shift and go to state 9 ]
-  ! SUMA            [ shift and go to state 10 ]
-  ! RESTA           [ shift and go to state 11 ]
+  ! MULT            [ shift and go to state 9 ]
+  ! DIV             [ shift and go to state 10 ]
+  ! MOD             [ shift and go to state 11 ]
+  ! SUMA            [ shift and go to state 12 ]
+  ! RESTA           [ shift and go to state 13 ]
 
 
 state 17
 
-    (8) expr -> expr SUMA expr .
-    (5) expr -> expr . MULT expr
-    (6) expr -> expr . DIV expr
-    (7) expr -> expr . MOD expr
-    (8) expr -> expr . SUMA expr
-    (9) expr -> expr . RESTA expr
+    (8) expr -> expr DIV expr .
+    (7) expr -> expr . MULT expr
+    (8) expr -> expr . DIV expr
+    (9) expr -> expr . MOD expr
+    (10) expr -> expr . SUMA expr
+    (11) expr -> expr . RESTA expr
 
-    ;               reduce using rule 8 (expr -> expr SUMA expr .)
-    SUMA            reduce using rule 8 (expr -> expr SUMA expr .)
-    RESTA           reduce using rule 8 (expr -> expr SUMA expr .)
-    )               reduce using rule 8 (expr -> expr SUMA expr .)
-    MULT            shift and go to state 7
-    DIV             shift and go to state 8
-    MOD             shift and go to state 9
+    ;               reduce using rule 8 (expr -> expr DIV expr .)
+    MULT            reduce using rule 8 (expr -> expr DIV expr .)
+    DIV             reduce using rule 8 (expr -> expr DIV expr .)
+    MOD             reduce using rule 8 (expr -> expr DIV expr .)
+    SUMA            reduce using rule 8 (expr -> expr DIV expr .)
+    RESTA           reduce using rule 8 (expr -> expr DIV expr .)
+    )               reduce using rule 8 (expr -> expr DIV expr .)
 
-  ! MULT            [ reduce using rule 8 (expr -> expr SUMA expr .) ]
-  ! DIV             [ reduce using rule 8 (expr -> expr SUMA expr .) ]
-  ! MOD             [ reduce using rule 8 (expr -> expr SUMA expr .) ]
-  ! SUMA            [ shift and go to state 10 ]
-  ! RESTA           [ shift and go to state 11 ]
+  ! MULT            [ shift and go to state 9 ]
+  ! DIV             [ shift and go to state 10 ]
+  ! MOD             [ shift and go to state 11 ]
+  ! SUMA            [ shift and go to state 12 ]
+  ! RESTA           [ shift and go to state 13 ]
 
 
 state 18
 
-    (9) expr -> expr RESTA expr .
-    (5) expr -> expr . MULT expr
-    (6) expr -> expr . DIV expr
-    (7) expr -> expr . MOD expr
-    (8) expr -> expr . SUMA expr
-    (9) expr -> expr . RESTA expr
+    (9) expr -> expr MOD expr .
+    (7) expr -> expr . MULT expr
+    (8) expr -> expr . DIV expr
+    (9) expr -> expr . MOD expr
+    (10) expr -> expr . SUMA expr
+    (11) expr -> expr . RESTA expr
 
-    ;               reduce using rule 9 (expr -> expr RESTA expr .)
-    SUMA            reduce using rule 9 (expr -> expr RESTA expr .)
-    RESTA           reduce using rule 9 (expr -> expr RESTA expr .)
-    )               reduce using rule 9 (expr -> expr RESTA expr .)
-    MULT            shift and go to state 7
-    DIV             shift and go to state 8
-    MOD             shift and go to state 9
+    ;               reduce using rule 9 (expr -> expr MOD expr .)
+    MULT            reduce using rule 9 (expr -> expr MOD expr .)
+    DIV             reduce using rule 9 (expr -> expr MOD expr .)
+    MOD             reduce using rule 9 (expr -> expr MOD expr .)
+    SUMA            reduce using rule 9 (expr -> expr MOD expr .)
+    RESTA           reduce using rule 9 (expr -> expr MOD expr .)
+    )               reduce using rule 9 (expr -> expr MOD expr .)
 
-  ! MULT            [ reduce using rule 9 (expr -> expr RESTA expr .) ]
-  ! DIV             [ reduce using rule 9 (expr -> expr RESTA expr .) ]
-  ! MOD             [ reduce using rule 9 (expr -> expr RESTA expr .) ]
-  ! SUMA            [ shift and go to state 10 ]
-  ! RESTA           [ shift and go to state 11 ]
+  ! MULT            [ shift and go to state 9 ]
+  ! DIV             [ shift and go to state 10 ]
+  ! MOD             [ shift and go to state 11 ]
+  ! SUMA            [ shift and go to state 12 ]
+  ! RESTA           [ shift and go to state 13 ]
 
 
 state 19
 
-    (3) expr -> ( expr ) .
+    (10) expr -> expr SUMA expr .
+    (7) expr -> expr . MULT expr
+    (8) expr -> expr . DIV expr
+    (9) expr -> expr . MOD expr
+    (10) expr -> expr . SUMA expr
+    (11) expr -> expr . RESTA expr
 
-    ;               reduce using rule 3 (expr -> ( expr ) .)
-    MULT            reduce using rule 3 (expr -> ( expr ) .)
-    DIV             reduce using rule 3 (expr -> ( expr ) .)
-    MOD             reduce using rule 3 (expr -> ( expr ) .)
-    SUMA            reduce using rule 3 (expr -> ( expr ) .)
-    RESTA           reduce using rule 3 (expr -> ( expr ) .)
-    )               reduce using rule 3 (expr -> ( expr ) .)
+    ;               reduce using rule 10 (expr -> expr SUMA expr .)
+    SUMA            reduce using rule 10 (expr -> expr SUMA expr .)
+    RESTA           reduce using rule 10 (expr -> expr SUMA expr .)
+    )               reduce using rule 10 (expr -> expr SUMA expr .)
+    MULT            shift and go to state 9
+    DIV             shift and go to state 10
+    MOD             shift and go to state 11
+
+  ! MULT            [ reduce using rule 10 (expr -> expr SUMA expr .) ]
+  ! DIV             [ reduce using rule 10 (expr -> expr SUMA expr .) ]
+  ! MOD             [ reduce using rule 10 (expr -> expr SUMA expr .) ]
+  ! SUMA            [ shift and go to state 12 ]
+  ! RESTA           [ shift and go to state 13 ]
+
+
+state 20
+
+    (11) expr -> expr RESTA expr .
+    (7) expr -> expr . MULT expr
+    (8) expr -> expr . DIV expr
+    (9) expr -> expr . MOD expr
+    (10) expr -> expr . SUMA expr
+    (11) expr -> expr . RESTA expr
+
+    ;               reduce using rule 11 (expr -> expr RESTA expr .)
+    SUMA            reduce using rule 11 (expr -> expr RESTA expr .)
+    RESTA           reduce using rule 11 (expr -> expr RESTA expr .)
+    )               reduce using rule 11 (expr -> expr RESTA expr .)
+    MULT            shift and go to state 9
+    DIV             shift and go to state 10
+    MOD             shift and go to state 11
+
+  ! MULT            [ reduce using rule 11 (expr -> expr RESTA expr .) ]
+  ! DIV             [ reduce using rule 11 (expr -> expr RESTA expr .) ]
+  ! MOD             [ reduce using rule 11 (expr -> expr RESTA expr .) ]
+  ! SUMA            [ shift and go to state 12 ]
+  ! RESTA           [ shift and go to state 13 ]
+
+
+state 21
+
+    (5) expr -> ( expr ) .
+
+    ;               reduce using rule 5 (expr -> ( expr ) .)
+    MULT            reduce using rule 5 (expr -> ( expr ) .)
+    DIV             reduce using rule 5 (expr -> ( expr ) .)
+    MOD             reduce using rule 5 (expr -> ( expr ) .)
+    SUMA            reduce using rule 5 (expr -> ( expr ) .)
+    RESTA           reduce using rule 5 (expr -> ( expr ) .)
+    )               reduce using rule 5 (expr -> ( expr ) .)
 
