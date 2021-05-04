@@ -1,0 +1,11 @@
+!A v B
+(!A v B) ^ (!B v A)
+(A v B) ^ (!B v !A)
+(A v B ^ C) ^ (!B v !C v !A)
+(A v B v C) ^ (!B ^ !C v !A)
+(D v A v B ^ C) ^ (!B v !C v !D ^ !A)
+(!D ^ A v B v C) ^ (!B ^ !C v D v !A)
+D v (A v B) ^ (!B v !A) v C
+D ^ (A v B) ^ (!B v !A) ^ C
+A v B ^ C
+(A v B) ^ C

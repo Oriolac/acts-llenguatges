@@ -7,3 +7,5 @@ A <-> B;
 D v !A <-> B v C;
 D v (!A <-> B) v C;
 D ^ (!A <-> B) ^ C;
+A v (B ^ C);
+(A v B) ^ C;
