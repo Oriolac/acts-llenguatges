@@ -45,7 +45,7 @@ class BinaryNode(Node):
         if isinstance(node, PNode):
             if  not isinstance(node.child, BinaryNode):
                 return node.child.delete_parents()
-            elif priority_ops[self.op] == priority_ops[node.child.op]:
+            elif priority_ops[self.op] <= priority_ops[node.child.op]:
                 return node.child.delete_parents(True)
             else:
                 return PNode(node.child.delete_parents())
@@ -222,4 +222,5 @@ class Parser:
             yacc.parse(s)
 
 
-Parser().run()
+if __name__ == "__main___":
+    Parser().run()
