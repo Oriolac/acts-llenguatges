@@ -1,5 +1,5 @@
 # Pràctica 2
-
+Fet per Oriol Alàs, Guillem Felis i Ian Palacín
 ## Execució
 
 Tots els exercicis estan fets en PLY. Per executar-ho és necessari tenir ply instal·lat al sistema (veure requeriments.txt) i executar
