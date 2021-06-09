@@ -1,6 +1,5 @@
 from ply import lex, yacc
 from generator.stable import *
-import generator.tokens as tok 
 
 class Parser:
 
@@ -9,7 +8,7 @@ class Parser:
         self.yacc = yacc.yacc(module=self)
         self.num_line = 1
 
-    identificadors = ('IDENTIFIER')
+    identificadors = ('IDENTIFIER',)
     constants = ('INTEGER', 'FLOAT', 'BOOLEAN')
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
     op_logics = ('AND', 'OR', 'XOR')
@@ -31,10 +30,10 @@ class Parser:
     t_MOD = r'%'
     t_POW = r'\*\*'
     
-    t_AND = r'\&'
-    t_OR = r'\|'
-    t_XOR = r'\^'
-    t_NOT = r'!'
+    t_AND = r'and'
+    t_OR = r'or'
+    t_XOR = r'xor'
+    t_NOT = r'(not|\!)'
     t_EQ = r'=='
     t_NEQ = r'!='
     t_GT = r'>'
@@ -42,4 +41,47 @@ class Parser:
     t_GE = r'>='
     t_LE = r'<='
 
-    t_ignore = ' \t\n'
+    t_ignore = ' \t'
+
+    precedence = (
+        ('right', 'XOR'),
+        ('left', 'OR'),
+        ('left', 'AND'),
+        ('left', 'GT', 'LT', 'GE', 'LE'),
+        ('left', 'EQ', 'NEQ'),
+        ('right', 'NOT'),
+        ('left', 'SUMA', 'RESTA'),
+        ('left', 'MULT', 'DIV', 'MOD'),
+        ('left', 'POW'),
+        ('right', 'USUMA', 'URESTA'),
+    )
+
+    def p_programa(self, p):
+        """
+        programa :  programa sentence
+                    | empty
+        """
+        pass
+
+    def p_sentence(self, p):
+        """
+        sentence :  empty '\n'
+                    | assignment '\n'
+        """
+        self.num_line += 1
+    
+    def p_empty(self, p):
+        """empty :"""
+        pass
+
+    def run(self):
+        while True:
+            try:
+                s = input()
+            except EOFError:
+                break
+            if not s:
+                continue
+            yacc.parse(s)
+
+Parser().run()
