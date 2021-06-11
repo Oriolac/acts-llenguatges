@@ -7,6 +7,7 @@ class Parser:
         self.lex = lex.lex(module=self)
         self.yacc = yacc.yacc(module=self)
         self.num_line = 1
+        self.parent_table = SymbolTable(None, 'global')
 
     identificadors = ('IDENTIFIER',)
     constants = ('INTEGER', 'FLOAT', 'BOOLEAN')
@@ -69,7 +70,7 @@ class Parser:
     def p_sentence(self, p):
         """
         sentence :  empty ';'
-                    | asig ';'
+                    | intasig ';'
         """
         self.num_line += 1
     
@@ -77,37 +78,42 @@ class Parser:
         """empty :"""
         pass
     
-    def p_asig(self, p):
+    def p_intasig(self, p):
         """
-        asig : IDENTIFIER '=' expr
+        intasig : IDENTIFIER '=' intexpr
         """
         print(f'{p[1]} = {p[3]};')
 
-    def p_expr_int_suma(self, p):
+    def p_expr(self, p):
         """
-        expr : expr SUMA expr
+        expr : intexpr
+        """
+
+    def p_intexpr_suma(self, p):
+        """
+        intexpr : intexpr SUMA intexpr
         """
         tmp = self.add_variable()
         print(f'{tmp} = {p[1]} SUMA {p[3]};')
         p[0] = tmp
 
-    def p_expr_int_const(self, p):
+    def p_intexpr_const(self, p):
         """
-        expr : INTEGER
+        intexpr : INTEGER
         """
         p[0] = p[1]
 
-    def p_expr_int_uresta(self, p):
+    def p_intexpr_uresta(self, p):
         """
-        expr :  RESTA expr  %prec URESTA
+        intexpr :  RESTA intexpr  %prec URESTA
         """
         tmp = self.add_variable()
         print(f'{tmp} = URESTA {p[2]};')
         p[0] = f"{tmp}"
 
-    def p_expr_int_usuma(self, p):
+    def p_intexpr_usuma(self, p):
         """
-        expr : SUMA expr %prec USUMA
+        intexpr : SUMA intexpr %prec USUMA
         """
         tmp = self.add_variable()
         print(f'{tmp} = USUMA {p[2]};')
