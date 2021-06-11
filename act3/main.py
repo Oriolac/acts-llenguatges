@@ -10,20 +10,21 @@ class Parser:
         self.parent_table = SymbolTable(None, 'global')
 
     identificadors = ('IDENTIFIER',)
-    constants = ('INTEGER', 'FLOAT', 'BOOLEAN')
+    constants = ('INTEGER', 'FLOAT', 'BOOLEAN', 'CHAR')
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
     op_logics = ('AND', 'OR', 'XOR')
     op_relacionals = ('NOT', 'EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
-    reserved = ('IF', 'ELSE', 'WHILE')
+    reserved = ('IF', 'ELSE', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE')
     tokens = identificadors + constants + op_arit + op_logics + op_relacionals + reserved
 
-    literals = (';', '=', '(', ')', '{', '}')
+    literals = (';', '=', '(', ')', '{', '}', ',', ':')
 
     t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
 
     t_INTEGER = r'\d+'
     t_FLOAT = r'\d+\.\d*'
     t_BOOLEAN = r'(True|False)'
+    t_CHAR = r'\'.\''
     
     t_SUMA = r'\+'
     t_RESTA = r'-'
@@ -42,9 +43,17 @@ class Parser:
     t_LT = r'<'
     t_GE = r'>='
     t_LE = r'<='
+
     t_IF = r'if'
     t_ELSE = r'else'
     t_WHILE = r'while'
+    t_FUNCTION = r'funk'
+    t_RETURN = r'retrunk'
+    t_INT_TYPE = r'int'
+    t_FLOAT_TYPE = r'float'
+    t_CHAR_TYPE = r'char'
+    t_BOOL_TYPE = r'bool'
+
     t_ignore = ' \t'
 
     precedence = (
@@ -71,9 +80,45 @@ class Parser:
         """
         sentence :  empty ';'
                     | asig ';'
+                    | funk
         """
         self.num_line += 1
     
+
+    def p_funk(self, p):
+        """
+        funk : FUNCTION return_type IDENTIFIER '(' params_def ')' '{' sentences '}'
+        """
+
+    def p_return_type(señf, p):
+        """
+        return_type : INT_TYPE
+                      | FLOAT_TYPE
+                      | BOOL_TYPE
+                      | CHAR_TYPE
+        """
+
+    def p_params_def(self, p):
+        """
+        params_def : param_def ',' params_def
+                 | param_def
+        """
+
+    def p_param_def(self, p):
+        """
+        param_def : INT_TYPE ':' IDENTIFIER
+                | FLOAT_TYPE ':' IDENTIFIER
+                | CHAR_TYPE ':' IDENTIFIER
+                | BOOL_TYPE ':' IDENTIFIER
+                | empty
+        """
+
+    def p_sentences(self, p):
+        """
+        sentences : sentence sentences
+                   | empty
+        """
+
     def p_empty(self, p):
         """empty :"""
         pass
@@ -81,12 +126,34 @@ class Parser:
     def p_asig(self, p):
         """
         asig : IDENTIFIER '=' expr
+               | IDENTIFIER '=' funk_call
         """
         print(f'{p[1]} = {p[3]};')
 
+    def p_funk_call(self, p):
+        """
+        funk_call : IDENTIFIER '(' params_call ')' 
+        """
+
+    def p_params_call(self, p):
+        """
+        params_call : param_call ',' params_call
+                    | param_call
+        """
+
+    def p_param_call(self, p):
+        """
+        param_call : IDENTIFIER
+                    | INTEGER
+                    | FLOAT
+                    | BOOLEAN
+                    | CHAR
+                    | empty
+        """
+
     def p_expr(self, p):
         """
-        expr : intexpr
+        expr : intexpr 
         """
         p[0] = p[1]
 
