@@ -70,7 +70,7 @@ class Parser:
     def p_sentence(self, p):
         """
         sentence :  empty ';'
-                    | intasig ';'
+                    | asig ';'
         """
         self.num_line += 1
     
@@ -78,9 +78,9 @@ class Parser:
         """empty :"""
         pass
     
-    def p_intasig(self, p):
+    def p_asig(self, p):
         """
-        intasig : IDENTIFIER '=' intexpr
+        asig : IDENTIFIER '=' expr
         """
         print(f'{p[1]} = {p[3]};')
 
@@ -88,6 +88,7 @@ class Parser:
         """
         expr : intexpr
         """
+        p[0] = p[1]
 
     def p_intexpr_suma(self, p):
         """
