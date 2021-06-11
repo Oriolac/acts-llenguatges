@@ -88,7 +88,7 @@ class Parser:
         expr : expr SUMA expr
         """
         tmp = self.add_variable()
-        print(f'{tmp} = {p[1]} SUMA {p[3]}')
+        print(f'{tmp} = {p[1]} SUMA {p[3]};')
         p[0] = tmp
 
     def p_expr_int_const(self, p):
@@ -102,14 +102,16 @@ class Parser:
         expr :  RESTA expr  %prec URESTA
         """
         tmp = self.add_variable()
-        print(f'{tmp} = URESTA {p[2]}')
+        print(f'{tmp} = URESTA {p[2]};')
         p[0] = f"{tmp}"
 
     def p_expr_int_usuma(self, p):
         """
         expr : SUMA expr %prec USUMA
         """
-        p[0] = f"{p[2]}"
+        tmp = self.add_variable()
+        print(f'{tmp} = USUMA {p[2]};')
+        p[0] = f"{tmp}"
 
     def add_variable(self):
         return "tmp"

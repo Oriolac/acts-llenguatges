@@ -38,10 +38,6 @@ class SymbolTable:
         else:
             return None
 
-
     def getParentScope(self):
         return self.parent
-
-
-
 
