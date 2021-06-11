@@ -14,12 +14,42 @@ class Parser:
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
     op_logics = ('AND', 'OR', 'XOR')
     op_relacionals = ('NOT', 'EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
-    reserved = ('IF', 'ELSE', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE')
-    tokens = identificadors + constants + op_arit + op_logics + op_relacionals + reserved
+    reserved = {
+    'if' : 'IF',
+    'else' : 'ELSE',
+    'while' : 'WHILE',
+    'funk' : 'FUNCTION',
+    'return' : 'RETURN',
+    'int': 'INT_TYPE',
+    'float' : 'FLOAT_TYPE',
+    'char' : 'CHAR_TYPE',
+    'bool' : 'BOOL_TYPE',
+    'true' : 'TRUE',
+    'false' : 'FALSE'
+    } 
+
+    tokens = identificadors + constants + op_arit + op_logics + op_relacionals + tuple(reserved.values())
 
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
 
     
+    def t_IDENTIFIER(self, t):
+        r'[a-zA-Z_][a-zA-Z_0-9]*'
+        reserved = {
+        'if' : 'IF',
+        'else' : 'ELSE',
+        'while' : 'WHILE',
+        'funk' : 'FUNCTION',
+        'retrunk' : 'RETURN',
+        'int': 'INT_TYPE',
+        'float' : 'FLOAT_TYPE',
+        'char' : 'CHAR_TYPE',
+        'bool' : 'BOOL_TYPE',
+        'true' : 'TRUE',
+        'false' : 'FALSE'
+        } 
+        t.type = reserved.get(t.value,'IDENTIFIER')
+        return t
 
     t_INTEGER = r'\d+'
     t_FLOAT = r'\d+\.\d*'
@@ -43,18 +73,6 @@ class Parser:
     t_LT = r'<'
     t_GE = r'>='
     t_LE = r'<='
-
-    t_IF = r'if'
-    t_ELSE = r'else'
-    t_WHILE = r'while'
-    t_FUNCTION = r'funk'
-    t_RETURN = r'retrunk'
-    t_INT_TYPE = r'int'
-    t_FLOAT_TYPE = r'float'
-    t_CHAR_TYPE = r'char'
-    t_BOOL_TYPE = r'bool'
-
-    t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
     
     t_ignore = ' \t\n'
 
@@ -123,6 +141,7 @@ class Parser:
     def p_sentences(self, p):
         """
         sentences : sentence sentences
+                   | RETURN sentence
                    | empty
         """
 
