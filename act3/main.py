@@ -1,21 +1,24 @@
 from ply import lex, yacc
-from generator.stable import *
+from computils.stable import *
+from computils.expr import Expr, Type, Boolean, Integer, Float, Char
 
 class Parser:
 
-    def __init__(self):
-        self.lex = lex.lex(module=self)
-        self.yacc = yacc.yacc(module=self)
-        self.num_line = 1
-        self.parent_table = SymbolTable(None, 'global')
-
     identificadors = ('IDENTIFIER',)
-    constants = ('INTEGER', 'FLOAT', 'BOOLEAN')
+    constants = ('INTEGER', 'FLOAT', 'BOOLEAN', 'CHAR')
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
     op_logics = ('AND', 'OR', 'XOR')
     op_relacionals = ('NOT', 'EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
     reserved = ('IF', 'ELSE', 'WHILE')
     tokens = identificadors + constants + op_arit + op_logics + op_relacionals + reserved
+
+    def __init__(self):
+        self.lex = lex.lex(module=self)
+        self.yacc = yacc.yacc(module=self)
+        self.num_line = 1
+        self.root_table: SymbolTable = SymbolTable(None, 'global')
+        self.dict_ops_arit = dict(zip(['+', '-', '*', '/', '%', '**'], self.op_arit))
+        self.current_table: SymbolTable = self.root_table
 
     literals = (';', '=', '(', ')', '{', '}')
 
@@ -24,6 +27,7 @@ class Parser:
     t_INTEGER = r'\d+'
     t_FLOAT = r'\d+\.\d*'
     t_BOOLEAN = r'(True|False)'
+    t_CHAR = r'\'.\''
     
     t_SUMA = r'\+'
     t_RESTA = r'-'
@@ -82,46 +86,60 @@ class Parser:
         """
         asig : IDENTIFIER '=' expr
         """
-        print(f'{p[1]} = {p[3]};')
+        self.current_table.put(VariableSymbol(p[1], p[3].tipus))
+        print(f'{p[1]} = {p[3].value};')
 
-    def p_expr(self, p):
-        """
-        expr : intexpr
-        """
-        p[0] = p[1]
 
-    def p_intexpr_suma(self, p):
+    def p_expr_op(self, p):
         """
-        intexpr : intexpr SUMA intexpr
+        expr :   expr SUMA expr
+                    | expr RESTA expr
+                    | expr MULT expr
+                    | expr DIV expr
+                    | expr MOD expr
+                    | expr POW expr
         """
-        tmp = self.add_variable()
-        print(f'{tmp} = {p[1]} SUMA {p[3]};')
-        p[0] = tmp
+        tmp = self.add_variable(Integer())
+        print(f'{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
+        p[0] = Expr(Integer(), tmp)
 
-    def p_intexpr_const(self, p):
+    def p_expr_const(self, p):
         """
-        intexpr : INTEGER
+        expr :   INTEGER 
         """
-        p[0] = p[1]
+        p[0] = Expr(Integer(), p[1])
 
-    def p_intexpr_uresta(self, p):
+    def p_expr_ident(self, p):
         """
-        intexpr :  RESTA intexpr  %prec URESTA
+        expr : IDENTIFIER
         """
-        tmp = self.add_variable()
+        var = self.current_table.get(p[1])
+        if var:
+            p[0] = Expr(Integer(), p[1])
+        else:
+            raise Exception(f"lineno {self.num_line}: {p[1]} not found.")
+
+    def p_expr_uresta(self, p):
+        """
+        expr :  RESTA expr  %prec URESTA
+        """
+        tmp = self.add_variable(Integer())
         print(f'{tmp} = URESTA {p[2]};')
         p[0] = f"{tmp}"
 
     def p_intexpr_usuma(self, p):
         """
-        intexpr : SUMA intexpr %prec USUMA
+        expr : SUMA expr %prec USUMA
         """
-        tmp = self.add_variable()
+        tmp = self.add_variable(Integer())
         print(f'{tmp} = USUMA {p[2]};')
         p[0] = f"{tmp}"
 
-    def add_variable(self):
-        return "tmp"
+    def add_variable(self, tipus: Type):
+        name = "tmp" + f"{self.current_table.length()}"
+        if not self.current_table.put(VariableSymbol(name, tipus)) :
+            raise Exception("State unreachable.")
+        return name
 
     def run(self):
         while True:

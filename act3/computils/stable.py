@@ -1,11 +1,12 @@
 from __future__ import annotations
+from .expr import Type
 
 from abc import ABC
 
 class Symbol(ABC):
     def __init__(self, name, tipus):
         self.name = name
-        self.type = tipus
+        self.type: Type = tipus
 
 class VariableSymbol(Symbol):
     pass
@@ -38,6 +39,11 @@ class SymbolTable:
         else:
             return None
 
+    def has(self, name:str):
+        return self.symbols.__contains__(name) or (self.parent and self.parent.has(name))
+
     def getParentScope(self):
         return self.parent
 
+    def length(self):
+        return len(self.symbols)
