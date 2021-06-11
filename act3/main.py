@@ -19,7 +19,7 @@ class Parser:
 
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
 
-    t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    
 
     t_INTEGER = r'\d+'
     t_FLOAT = r'\d+\.\d*'
@@ -54,7 +54,9 @@ class Parser:
     t_CHAR_TYPE = r'char'
     t_BOOL_TYPE = r'bool'
 
-    t_ignore = ' \t'
+    t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    
+    t_ignore = ' \t\n'
 
     precedence = (
         ('right', 'XOR'),
@@ -74,6 +76,7 @@ class Parser:
         programa :  programa sentence
                     | empty
         """
+        print("program")
         pass
 
     def p_sentence(self, p):
@@ -82,31 +85,35 @@ class Parser:
                     | asig ';'
                     | funk
         """
+        print("sentence")
         self.num_line += 1
     
 
     def p_funk(self, p):
         """
-        funk : FUNCTION return_type IDENTIFIER '(' params_def ')' '{' sentences '}'
+        funk : FUNCTION returntype IDENTIFIER '(' paramsdef ')' '{' sentences '}'
         """
+        print("funk")
+        pass
 
-    def p_return_type(señf, p):
+    def p_returntype(self, p):
         """
-        return_type : INT_TYPE
+        returntype : INT_TYPE
                       | FLOAT_TYPE
                       | BOOL_TYPE
                       | CHAR_TYPE
         """
+        
 
-    def p_params_def(self, p):
+    def p_paramsdef(self, p):
         """
-        params_def : param_def ',' params_def
-                 | param_def
+        paramsdef : paramdef ',' paramsdef
+                 | paramdef
         """
 
-    def p_param_def(self, p):
+    def p_paramdef(self, p):
         """
-        param_def : INT_TYPE ':' IDENTIFIER
+        paramdef : INT_TYPE ':' IDENTIFIER
                 | FLOAT_TYPE ':' IDENTIFIER
                 | CHAR_TYPE ':' IDENTIFIER
                 | BOOL_TYPE ':' IDENTIFIER
@@ -126,24 +133,24 @@ class Parser:
     def p_asig(self, p):
         """
         asig : IDENTIFIER '=' expr
-               | IDENTIFIER '=' funk_call
+               | IDENTIFIER '=' funkcall
         """
         print(f'{p[1]} = {p[3]};')
 
-    def p_funk_call(self, p):
+    def p_funkcall(self, p):
         """
-        funk_call : IDENTIFIER '(' params_call ')' 
-        """
-
-    def p_params_call(self, p):
-        """
-        params_call : param_call ',' params_call
-                    | param_call
+        funkcall : IDENTIFIER '(' paramscall ')' 
         """
 
-    def p_param_call(self, p):
+    def p_paramscall(self, p):
         """
-        param_call : IDENTIFIER
+        paramscall : paramcall ',' paramscall
+                    | paramcall
+        """
+
+    def p_paramcall(self, p):
+        """
+        paramcall : IDENTIFIER
                     | INTEGER
                     | FLOAT
                     | BOOLEAN
@@ -198,6 +205,6 @@ class Parser:
                 break
             if not s:
                 continue
-            yacc.parse(s)
+            yacc.parse(s, debug=1)
 
 Parser().run()
