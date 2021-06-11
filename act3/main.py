@@ -9,7 +9,7 @@ class Parser:
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
     op_logics = ('AND', 'OR', 'XOR')
     op_relacionals = ('NOT', 'EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
-    reserved = ('IF', 'ELSE', 'WHILE')
+    reserved = ('IF', 'ELSE', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE')
     tokens = identificadors + constants + op_arit + op_logics + op_relacionals + reserved
 
     def __init__(self):
@@ -20,9 +20,7 @@ class Parser:
         self.dict_ops_arit = dict(zip(['+', '-', '*', '/', '%', '**'], self.op_arit))
         self.current_table: SymbolTable = self.root_table
 
-    literals = (';', '=', '(', ')', '{', '}')
-
-    t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    literals = (';', '=', '(', ')', '{', '}', ',', ':')
 
     t_INTEGER = r'\d+'
     t_FLOAT = r'\d+\.\d*'
@@ -46,10 +44,20 @@ class Parser:
     t_LT = r'<'
     t_GE = r'>='
     t_LE = r'<='
+
     t_IF = r'if'
     t_ELSE = r'else'
     t_WHILE = r'while'
-    t_ignore = ' \t'
+    t_FUNCTION = r'funk'
+    t_RETURN = r'retrunk'
+    t_INT_TYPE = r'int'
+    t_FLOAT_TYPE = r'float'
+    t_CHAR_TYPE = r'char'
+    t_BOOL_TYPE = r'bool'
+
+    t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    
+    t_ignore = ' \t\n'
 
     precedence = (
         ('right', 'XOR'),
@@ -75,9 +83,47 @@ class Parser:
         """
         sentence :  empty ';'
                     | asig ';'
+                    | funk
         """
         self.num_line += 1
     
+
+    def p_funk(self, p):
+        """
+        funk : FUNCTION returntype IDENTIFIER '(' paramsdef ')' '{' sentences '}'
+        """
+        pass
+
+    def p_returntype(self, p):
+        """
+        returntype : INT_TYPE
+                      | FLOAT_TYPE
+                      | BOOL_TYPE
+                      | CHAR_TYPE
+        """
+        
+
+    def p_paramsdef(self, p):
+        """
+        paramsdef : paramdef ',' paramsdef
+                 | paramdef
+        """
+
+    def p_paramdef(self, p):
+        """
+        paramdef : INT_TYPE ':' IDENTIFIER
+                | FLOAT_TYPE ':' IDENTIFIER
+                | CHAR_TYPE ':' IDENTIFIER
+                | BOOL_TYPE ':' IDENTIFIER
+                | empty
+        """
+
+    def p_sentences(self, p):
+        """
+        sentences : sentence sentences
+                   | empty
+        """
+
     def p_empty(self, p):
         """empty :"""
         pass
@@ -85,10 +131,32 @@ class Parser:
     def p_asig(self, p):
         """
         asig : IDENTIFIER '=' expr
+               | IDENTIFIER '=' funkcall
         """
         self.current_table.put(VariableSymbol(p[1], p[3].tipus))
         print(f'{p[1]} = {p[3].value};')
 
+
+    def p_funkcall(self, p):
+        """
+        funkcall : IDENTIFIER '(' paramscall ')' 
+        """
+
+    def p_paramscall(self, p):
+        """
+        paramscall : paramcall ',' paramscall
+                    | paramcall
+        """
+
+    def p_paramcall(self, p):
+        """
+        paramcall : IDENTIFIER
+                    | INTEGER
+                    | FLOAT
+                    | BOOLEAN
+                    | CHAR
+                    | empty
+        """
 
     def p_expr_op(self, p):
         """
@@ -149,6 +217,6 @@ class Parser:
                 break
             if not s:
                 continue
-            yacc.parse(s)
+            yacc.parse(s, debug=0)
 
 Parser().run()
