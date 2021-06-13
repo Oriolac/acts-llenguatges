@@ -257,15 +257,23 @@ class Parser:
         return name
 
     def run(self):
+        read = lambda : input()
+        from_file = False
+        if len(sys.argv) > 1:
+            fitxer = open(sys.argv[1], mode="r")
+            read = lambda : fitxer.readline()
+            from_file = True
         while True:
             try:
-                s = input()
+                s = read()
+                if from_file and not s:
+                    break
             except EOFError:
                 break
             if not s:
                 continue
             try:
-                yacc.parse(s, debug=0)
+                yacc.parse(s)
             except CompileException as e:
                 print(e.get_msg());
                 sys.exit();
