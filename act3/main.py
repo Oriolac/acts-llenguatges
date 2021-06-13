@@ -34,6 +34,8 @@ class Parser:
         self.root_table: SymbolTable = SymbolTable(None, 'global')
         self.dict_ops_arit = dict(zip(['+', '-', '*', '/', '%', '**'], self.op_arit))
         self.current_table: SymbolTable = self.root_table
+        self.dict_types = {'int': Integer(), 'float': Float(), 'char': Char(), 'bool': Boolean()}
+        self.in_funk = False
 
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
 
@@ -93,6 +95,8 @@ class Parser:
         ('right', 'USUMA', 'URESTA'),
     )
 
+    in_funk = False
+
     def p_programa(self, p):
         """
         programa :  programa sentence
@@ -111,9 +115,24 @@ class Parser:
 
     def p_funk(self, p):
         """
-        funk : FUNCTION returntype IDENTIFIER '(' paramsdef ')' '{' sentences '}'
+        funk : heading '(' paramsdef ')' footing
         """
-        pass
+        print("funk")
+        
+        # Petar-se la tula de simbols un cop ja l'hem processat, guardar els tipos dels params a la stable parent
+
+    def p_heading(self, p):
+        """
+        heading : FUNCTION returntype IDENTIFIER
+        """
+        if not self.in_funk:
+            self.in_funk = True
+            self.current_table = SymbolTable(self.current_table, p[3])
+        
+    def p_footing(self, p):
+        """
+        footing : '{' sentences '}'
+        """
 
     def p_returntype(self, p):
         """
@@ -121,14 +140,18 @@ class Parser:
                       | FLOAT_TYPE
                       | BOOL_TYPE
                       | CHAR_TYPE
-        """
-        
+        """ 
 
     def p_paramsdef(self, p):
         """
         paramsdef : paramdef ',' paramsdef
                  | paramdef
         """
+        for symbol in self.current_table.symbols:
+            current = self.current_table.symbols[symbol]
+            print(current.name, current.type)
+        #print(self.current_table.symbols['a'].type)
+        print("paramsdef")
 
     def p_paramdef(self, p):
         """
@@ -138,6 +161,9 @@ class Parser:
                 | BOOL_TYPE ':' IDENTIFIER
                 | empty
         """
+        
+        if len(p) > 2: # Evitar cas empty
+            self.current_table.put(VariableSymbol(p[3], self.dict_types[p[1]]))
 
     def p_sentences(self, p):
         """
@@ -145,10 +171,11 @@ class Parser:
                    | RETURN returnsentence
                    | empty
         """
+        print("sentences")
 
     def p_returnsentence(self, p):
         """
-        returnsentence : expr 
+        returnsentence : expr ';'
                         | IDENTIFIER
         """
 
@@ -185,6 +212,8 @@ class Parser:
                     | CHAR
                     | empty
         """
+
+        # comrprovar tipus de params amb simbols de la taula
 
     def p_expr_op(self, p):
         """
@@ -285,7 +314,7 @@ class Parser:
             if not s:
                 continue
             try:
-                yacc.parse(s)
+                yacc.parse(s, debug=0)
             except CompileException as e:
                 print(e.get_msg())
                 sys.exit()
