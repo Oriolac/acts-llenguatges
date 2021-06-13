@@ -1,6 +1,8 @@
 from ply import lex, yacc
+import sys
 from computils.stable import *
 from computils.expr import Expr, Type, Boolean, Integer, Float, Char
+from computils.exceptions import CompileException
 
 class Parser:
 
@@ -167,15 +169,40 @@ class Parser:
                     | expr MOD expr
                     | expr POW expr
         """
+        if (p[1].tipus == p[3].tipus):
+            tmp = self.add_variable(p[1].tipus)
+        elif (isinstance(p[1].tipus, (Float, Integer)) and isinstance(p[3].tipus, (Float, Integer))):
+            tmp = self.add_variable(Float())
+        else:
+            raise CompileException(self, f"Not supported types for operating the operation {p[2]}")
         tmp = self.add_variable(Integer())
         print(f'{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
         p[0] = Expr(Integer(), tmp)
 
-    def p_expr_const(self, p):
+    def p_expr_const_int(self, p):
         """
         expr :   INTEGER 
         """
         p[0] = Expr(Integer(), p[1])
+
+
+    def p_expr_const_float(self, p):
+        """
+        expr :   FLOAT
+        """
+        p[0] = Expr(Float(), p[1])
+
+    def p_expr_const_char(self, p):
+        """
+        expr :   CHAR
+        """
+        p[0] = Expr(Char(), p[1])
+
+    def p_expr_const_boolean(self, p):
+        """
+        expr :   BOOLEAN
+        """
+        p[0] = Expr(Boolean(), p[1])
 
     def p_expr_ident(self, p):
         """
@@ -183,9 +210,9 @@ class Parser:
         """
         var = self.current_table.get(p[1])
         if var:
-            p[0] = Expr(Integer(), p[1])
+            p[0] = Expr(var.type, p[1])
         else:
-            raise Exception(f"lineno {self.num_line}: {p[1]} not found.")
+            raise CompileException(self, f"{p[1]} not found.")
 
     def p_expr_uresta(self, p):
         """
@@ -206,7 +233,7 @@ class Parser:
     def add_variable(self, tipus: Type):
         name = "tmp" + f"{self.current_table.length()}"
         if not self.current_table.put(VariableSymbol(name, tipus)) :
-            raise Exception("State unreachable.")
+            raise CompileException(self, "State unreachable.")
         return name
 
     def run(self):
@@ -217,6 +244,10 @@ class Parser:
                 break
             if not s:
                 continue
-            yacc.parse(s, debug=0)
+            try:
+                yacc.parse(s, debug=0)
+            except CompileException as e:
+                print(e.get_msg());
+                sys.exit();
 
 Parser().run()

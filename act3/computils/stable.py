@@ -31,7 +31,7 @@ class SymbolTable:
             self.symbols[symbol.name]= symbol
             return True
 
-    def get(self, name: str):
+    def get(self, name: str) -> Symbol:
         if self.symbols.__contains__(name):
             return self.symbols[name]
         elif self.parent:
