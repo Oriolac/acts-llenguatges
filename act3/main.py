@@ -36,7 +36,10 @@ class Parser:
         self.current_table: SymbolTable = self.root_table
 
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
+<<<<<<< HEAD
 
+=======
+>>>>>>> cbfedd845ed5d080c7b890a57fe159c57036a5de
     
     def t_IDENTIFIER(self, t):
         r'[a-zA-Z_][a-zA-Z_0-9]*'
