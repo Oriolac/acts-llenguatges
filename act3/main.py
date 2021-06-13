@@ -35,9 +35,8 @@ class Parser:
         self.dict_ops_arit = dict(zip(['+', '-', '*', '/', '%', '**'], self.op_arit))
         self.current_table: SymbolTable = self.root_table
 
-<<<<<<< HEAD
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
-=======
+
     
     def t_IDENTIFIER(self, t):
         r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -56,7 +55,6 @@ class Parser:
         } 
         t.type = reserved.get(t.value,'IDENTIFIER')
         return t
->>>>>>> c554fe045551d6419b1e5476148a37d90c64fc94
 
     t_INTEGER = r'\d+'
     t_FLOAT = r'\d+\.\d*'
@@ -145,8 +143,14 @@ class Parser:
     def p_sentences(self, p):
         """
         sentences : sentence sentences
-                   | RETURN sentence
+                   | RETURN returnsentence
                    | empty
+        """
+
+    def p_returnsentence(self, p):
+        """
+        returnsentence : expr 
+                        | IDENTIFIER
         """
 
     def p_empty(self, p):
@@ -192,6 +196,8 @@ class Parser:
                     | expr MOD expr
                     | expr POW expr
         """
+
+        """
         if (p[1].tipus == p[3].tipus):
             tmp = self.add_variable(p[1].tipus)
         elif (isinstance(p[1].tipus, (Float, Integer)) and isinstance(p[3].tipus, (Float, Integer))):
@@ -201,6 +207,7 @@ class Parser:
         tmp = self.add_variable(Integer())
         print(f'{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
         p[0] = Expr(Integer(), tmp)
+        """
 
     def p_expr_const_int(self, p):
         """
@@ -231,11 +238,14 @@ class Parser:
         """
         expr : IDENTIFIER
         """
+
+        """
         var = self.current_table.get(p[1])
         if var:
             p[0] = Expr(var.type, p[1])
         else:
             raise CompileException(self, f"{p[1]} not found.")
+        """
 
     def p_expr_uresta(self, p):
         """
@@ -268,7 +278,7 @@ class Parser:
             if not s:
                 continue
             try:
-                yacc.parse(s, debug=0)
+                yacc.parse(s, debug=1)
             except CompileException as e:
                 print(e.get_msg());
                 sys.exit();
