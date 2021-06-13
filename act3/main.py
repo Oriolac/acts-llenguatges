@@ -6,6 +6,7 @@ from computils.exceptions import CompileException
 
 class Parser:
 
+    t_RETURN = 'retrunk'
     identificadors = ('IDENTIFIER',)
     constants = ('INTEGER', 'FLOAT', 'BOOLEAN', 'CHAR')
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
@@ -16,7 +17,7 @@ class Parser:
     'else' : 'ELSE',
     'while' : 'WHILE',
     'funk' : 'FUNCTION',
-    'return' : 'RETURN',
+    t_RETURN : 'RETURN',
     'int': 'INT_TYPE',
     'float' : 'FLOAT_TYPE',
     'char' : 'CHAR_TYPE',
@@ -40,20 +41,7 @@ class Parser:
 
     def t_IDENTIFIER(self, t):
         r'[a-zA-Z_][a-zA-Z_0-9]*'
-        reserved = {
-        'if' : 'IF',
-        'else' : 'ELSE',
-        'while' : 'WHILE',
-        'funk' : 'FUNCTION',
-        'retrunk' : 'RETURN',
-        'int': 'INT_TYPE',
-        'float' : 'FLOAT_TYPE',
-        'char' : 'CHAR_TYPE',
-        'bool' : 'BOOL_TYPE',
-        'true' : 'TRUE',
-        'false' : 'FALSE'
-        } 
-        t.type = reserved.get(t.value,'IDENTIFIER')
+        t.type = self.reserved.get(t.value,'IDENTIFIER')
         return t
 
     t_INTEGER = r'\d+'
@@ -114,17 +102,26 @@ class Parser:
 
     def p_funk(self, p):
         """
-        funk : heading '(' paramsdef ')' footing
+        funk : heading '(' middlefunk ')' footing
+              | heading '(' ')' footing
         """
-        print("funk")
         
         # Petar-se la tula de simbols un cop ja l'hem processat, guardar els tipos dels params a la stable parent
+
+    def p_middlefunk(self, p):
+        """
+        middlefunk : paramsdef
+        """
+        for i, param in enumerate(p[1]):
+            print(f'\t{param[0]}:= param', i+1)
+        
 
     def p_heading(self, p):
         """
         heading : FUNCTION returntype IDENTIFIER
         """
         self.current_table = SymbolTable(self.current_table, p[3])
+        print(f'FUNK {p[3]}:')
         
     def p_footing(self, p):
         """
@@ -145,36 +142,50 @@ class Parser:
         paramsdef : paramdef ',' paramsdef
                  | paramdef
         """
-        for symbol in self.current_table.symbols:
-            current = self.current_table.symbols[symbol]
-            print(current.name, current.type)
-        print("paramsdef")
-
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = [p[1]] + p[3]
+            
+    
     def p_paramdef(self, p):
         """
         paramdef : INT_TYPE ':' IDENTIFIER
                 | FLOAT_TYPE ':' IDENTIFIER
                 | CHAR_TYPE ':' IDENTIFIER
-                | BOOL_TYPE ':' IDENTIFIER
-                | empty
+                | BOOL_TYPE ':' IDENTIFIER  
         """
-        
-        if len(p) > 2: # Evitar cas empty
-            self.current_table.put(VariableSymbol(p[3], self.dict_types[p[1]]))
+        self.current_table.put(VariableSymbol(p[3], self.dict_types[p[1]]))
+        p[0] = (p[3] , p[1])
 
+   
     def p_sentences(self, p):
         """
-        sentences : sentence sentences
+        sentences : tabsentence sentences
                    | RETURN returnsentence
                    | empty
         """
-        print("sentences")
+        
+
+    def p_tabsentence(self, p):
+        """
+        tabsentence : sentence
+        """
+        print("\t", end="")
 
     def p_returnsentence(self, p):
         """
-        returnsentence : expr ';'
-                        | IDENTIFIER
+        returnsentence : tabreturn expr ';'
+
         """
+        
+        print(f'\t{self.t_RETURN} {p[2].value};')
+
+    def p_tabreturn(self, p):
+        """
+        tabreturn : empty
+        """
+        print("\t", end="")
 
     def p_empty(self, p):
         """empty :"""
@@ -270,7 +281,6 @@ class Parser:
             p[0] = Expr(var.type, p[1])
         else:
             raise CompileException(self, f"{p[1]} not found.")
-        
 
     def p_expr_uresta(self, p):
         """
@@ -306,7 +316,7 @@ class Parser:
                 s = read()[:-1]
                 if from_file and not s:
                     break
-            except EOFError:
+            except EOFError:    
                 break
             if not s:
                 continue
