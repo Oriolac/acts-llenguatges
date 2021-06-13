@@ -82,7 +82,6 @@ class Parser:
         ('right', 'USUMA', 'URESTA'),
     )
 
-    in_funk = False
 
     def p_programa(self, p):
         """
@@ -103,10 +102,15 @@ class Parser:
     def p_funk(self, p):
         """
         funk : heading '(' middlefunk ')' footing
-              | heading '(' ')' footing
         """
-        
+        self.current_table.put(FunctionSymbol(p[1][1], p[1][0], p[3]))
         # Petar-se la tula de simbols un cop ja l'hem processat, guardar els tipos dels params a la stable parent
+
+    def p_funk_empy(self, p):
+        """
+        funk : heading '(' ')' footing
+        """
+        self.current_table.put(FunctionSymbol(p[1][1], p[1][0], []))
 
     def p_middlefunk(self, p):
         """
@@ -114,13 +118,14 @@ class Parser:
         """
         for i, param in enumerate(p[1]):
             print(f'\t{param[0]}:= param', i+1)
-        
+        p[0] = p[1]
 
     def p_heading(self, p):
         """
         heading : FUNCTION returntype IDENTIFIER
         """
         self.current_table = SymbolTable(self.current_table, p[3])
+        p[0] = p[2], p[3]
         print(f'FUNK {p[3]}:')
         
     def p_footing(self, p):
@@ -136,6 +141,7 @@ class Parser:
                       | BOOL_TYPE
                       | CHAR_TYPE
         """ 
+        p[0] = self.dict_types[p[1]]
 
     def p_paramsdef(self, p):
         """
@@ -157,7 +163,7 @@ class Parser:
         """
         self.current_table.put(VariableSymbol(p[3], self.dict_types[p[1]]))
         p[0] = (p[3] , p[1])
-
+   
    
     def p_sentences(self, p):
         """
