@@ -36,11 +36,7 @@ class Parser:
         self.current_table: SymbolTable = self.root_table
 
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
-<<<<<<< HEAD
 
-=======
->>>>>>> cbfedd845ed5d080c7b890a57fe159c57036a5de
-    
     def t_IDENTIFIER(self, t):
         r'[a-zA-Z_][a-zA-Z_0-9]*'
         reserved = {
@@ -200,7 +196,7 @@ class Parser:
                     | expr POW expr
         """
 
-        """
+        
         if (p[1].tipus == p[3].tipus):
             tmp = self.add_variable(p[1].tipus)
         elif (isinstance(p[1].tipus, (Float, Integer)) and isinstance(p[3].tipus, (Float, Integer))):
@@ -210,7 +206,7 @@ class Parser:
         tmp = self.add_variable(Integer())
         print(f'{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
         p[0] = Expr(Integer(), tmp)
-        """
+        
 
     def p_expr_const_int(self, p):
         """
@@ -242,13 +238,13 @@ class Parser:
         expr : IDENTIFIER
         """
 
-        """
+        
         var = self.current_table.get(p[1])
         if var:
             p[0] = Expr(var.type, p[1])
         else:
             raise CompileException(self, f"{p[1]} not found.")
-        """
+        
 
     def p_expr_uresta(self, p):
         """
@@ -283,7 +279,7 @@ class Parser:
             try:
                 yacc.parse(s, debug=1)
             except CompileException as e:
-                print(e.get_msg());
-                sys.exit();
+                print(e.get_msg())
+                sys.exit()
 
 Parser().run()
