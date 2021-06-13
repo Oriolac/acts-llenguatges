@@ -35,7 +35,6 @@ class Parser:
         self.dict_ops_arit = dict(zip(['+', '-', '*', '/', '%', '**'], self.op_arit))
         self.current_table: SymbolTable = self.root_table
         self.dict_types = {'int': Integer(), 'float': Float(), 'char': Char(), 'bool': Boolean()}
-        self.in_funk = False
 
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
 
@@ -125,14 +124,13 @@ class Parser:
         """
         heading : FUNCTION returntype IDENTIFIER
         """
-        if not self.in_funk:
-            self.in_funk = True
-            self.current_table = SymbolTable(self.current_table, p[3])
+        self.current_table = SymbolTable(self.current_table, p[3])
         
     def p_footing(self, p):
         """
         footing : '{' sentences '}'
         """
+        self.current_table = self.current_table.parent
 
     def p_returntype(self, p):
         """
@@ -150,7 +148,6 @@ class Parser:
         for symbol in self.current_table.symbols:
             current = self.current_table.symbols[symbol]
             print(current.name, current.type)
-        #print(self.current_table.symbols['a'].type)
         print("paramsdef")
 
     def p_paramdef(self, p):
@@ -306,7 +303,7 @@ class Parser:
             from_file = True
         while True:
             try:
-                s = read()
+                s = read()[:-1]
                 if from_file and not s:
                     break
             except EOFError:
