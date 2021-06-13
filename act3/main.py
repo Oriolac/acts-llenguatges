@@ -35,9 +35,7 @@ class Parser:
         self.dict_ops_arit = dict(zip(['+', '-', '*', '/', '%', '**'], self.op_arit))
         self.current_table: SymbolTable = self.root_table
 
-<<<<<<< HEAD
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
-=======
     
     def t_IDENTIFIER(self, t):
         r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -56,7 +54,6 @@ class Parser:
         } 
         t.type = reserved.get(t.value,'IDENTIFIER')
         return t
->>>>>>> c554fe045551d6419b1e5476148a37d90c64fc94
 
     t_INTEGER = r'\d+'
     t_FLOAT = r'\d+\.\d*'
