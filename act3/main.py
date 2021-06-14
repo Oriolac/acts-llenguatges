@@ -1,3 +1,4 @@
+import re
 from ply import lex, yacc
 import sys
 from computils.stable import *
@@ -6,27 +7,14 @@ from computils.exceptions import CompileException
 
 class Parser:
 
-    t_RETURN = 'retrunk'
     identificadors = ('IDENTIFIER',)
-    constants = ('INTEGER', 'FLOAT', 'BOOLEAN', 'CHAR')
+    constants = ('INTEGER_VALUE', 'FLOAT_VALUE', 'BOOL_VALUE', 'CHAR_VALUE')
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
     op_logics = ('AND', 'OR', 'XOR')
     op_relacionals = ('NOT', 'EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
-    reserved = {
-    'if' : 'IF',
-    'else' : 'ELSE',
-    'while' : 'WHILE',
-    'funk' : 'FUNCTION',
-    t_RETURN : 'RETURN',
-    'int': 'INT_TYPE',
-    'float' : 'FLOAT_TYPE',
-    'char' : 'CHAR_TYPE',
-    'bool' : 'BOOL_TYPE',
-    'true' : 'TRUE',
-    'false' : 'FALSE'
-    } 
-
-    tokens = identificadors + constants + op_arit + op_logics + op_relacionals + tuple(reserved.values())
+    reserved = ('IF', 'ELSE', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE')
+    tokens = identificadors + constants + op_arit + op_logics + op_relacionals + reserved
+    literals = (';', '=', '(', ')', '{', '}', ',', ':')
 
     def __init__(self):
         self.lex = lex.lex(module=self)
@@ -37,17 +25,10 @@ class Parser:
         self.current_table: SymbolTable = self.root_table
         self.dict_types = {'int': Integer(), 'float': Float(), 'char': Char(), 'bool': Boolean()}
 
-    literals = (';', '=', '(', ')', '{', '}', ',', ':')
-
-    def t_IDENTIFIER(self, t):
-        r'[a-zA-Z_][a-zA-Z_0-9]*'
-        t.type = self.reserved.get(t.value,'IDENTIFIER')
-        return t
-
-    t_INTEGER = r'\d+'
-    t_FLOAT = r'\d+\.\d*'
-    t_BOOLEAN = r'(True|False)'
-    t_CHAR = r'\'.\''
+    t_INTEGER_VALUE = r'\d+'
+    t_FLOAT_VALUE = r'\d+\.\d*'
+    t_BOOL_VALUE = r'(True|False)'
+    t_CHAR_VALUE = r'\'.\''
     
     t_SUMA = r'\+'
     t_RESTA = r'-'
@@ -66,7 +47,38 @@ class Parser:
     t_LT = r'<'
     t_GE = r'>='
     t_LE = r'<='
+
+
+    t_IF = r'if'
+    t_ELSE = r'else'
+    t_WHILE = r'while'
+    t_FUNCTION = r'funk'
+    t_RETURN = r'retrunk'
+    t_INT_TYPE = r'int'
+    t_FLOAT_TYPE = r'float'
+    t_CHAR_TYPE = r'char'
+    t_BOOL_TYPE = r'bool'
+
+    reserved = {
+        t_IF : 'IF',
+        t_ELSE : 'ELSE',
+        t_WHILE : 'WHILE',
+        t_FUNCTION : 'FUNCTION',
+        t_RETURN : 'RETURN',
+        t_INT_TYPE : 'INT_TYPE',
+        t_FLOAT_TYPE : 'FLOAT_TYPE',
+        t_CHAR_TYPE : 'CHAR_TYPE',
+        t_BOOL_TYPE : 'BOOL_TYPE',
+        t_BOOL_VALUE : 'BOOL_VALUE',
+    } 
     
+    
+    def t_IDENTIFIER(self, t):
+        r'[a-zA-Z_][a-zA-Z_0-9]*'
+        matches = list(filter(lambda x: re.match(x, t.value), self.reserved.keys()))
+        t.type = 'IDENTIFIER' if not matches else self.reserved.get(matches[0], 'IDENTIFIER')
+        return t
+
     t_ignore = ' \t\n'
 
     precedence = (
@@ -104,7 +116,7 @@ class Parser:
         funk : heading '(' middlefunk ')' footing
         """
         self.current_table.put(FunctionSymbol(p[1][1], p[1][0], p[3]))
-        # Petar-se la tula de simbols un cop ja l'hem processat, guardar els tipos dels params a la stable parent
+        p[0] = p[1:]
 
     def p_funk_empy(self, p):
         """
@@ -117,31 +129,31 @@ class Parser:
         middlefunk : paramsdef
         """
         for i, param in enumerate(p[1]):
-            print(f'\t{param[0]}:= param', i+1)
+            print(f'{self.current_table.tabulation()}{param[0]}:= param', i+1)
         p[0] = p[1]
 
     def p_heading(self, p):
         """
-        heading : FUNCTION returntype IDENTIFIER
+        heading : FUNCTION typename IDENTIFIER
         """
+        print(f'{self.current_table.tabulation()}{self.t_FUNCTION} {p[3]}:')
         self.current_table = SymbolTable(self.current_table, p[3])
         p[0] = p[2], p[3]
-        print(f'FUNK {p[3]}:')
         
     def p_footing(self, p):
         """
-        footing : '{' sentences '}'
+        footing : '{' bodyfunk '}'
         """
         self.current_table = self.current_table.parent
 
-    def p_returntype(self, p):
+    def p_typename(self, p):
         """
-        returntype : INT_TYPE
+        typename : INT_TYPE
                       | FLOAT_TYPE
                       | BOOL_TYPE
                       | CHAR_TYPE
         """ 
-        p[0] = self.dict_types[p[1]]
+        p[0] = p[1]
 
     def p_paramsdef(self, p):
         """
@@ -156,42 +168,34 @@ class Parser:
     
     def p_paramdef(self, p):
         """
-        paramdef : INT_TYPE ':' IDENTIFIER
-                | FLOAT_TYPE ':' IDENTIFIER
-                | CHAR_TYPE ':' IDENTIFIER
-                | BOOL_TYPE ':' IDENTIFIER  
+        paramdef : typename ':' IDENTIFIER
         """
         self.current_table.put(VariableSymbol(p[3], self.dict_types[p[1]]))
         p[0] = (p[3] , p[1])
    
    
-    def p_sentences(self, p):
+    def p_bodyfunk(self, p):
         """
-        sentences : tabsentence sentences
+        bodyfunk : bodysentence bodyfunk
                    | RETURN returnsentence
-                   | empty
         """
         
 
-    def p_tabsentence(self, p):
+    def p_bodysentence(self, p):
         """
-        tabsentence : sentence
+        bodysentence : tabreturn sentence
         """
-        print("\t", end="")
 
     def p_returnsentence(self, p):
         """
         returnsentence : tabreturn expr ';'
-
         """
-        
-        print(f'\t{self.t_RETURN} {p[2].value};')
+        print(f'{self.current_table.tabulation()}{self.t_RETURN} {p[2].value};')
 
     def p_tabreturn(self, p):
         """
         tabreturn : empty
         """
-        print("\t", end="")
 
     def p_empty(self, p):
         """empty :"""
@@ -203,7 +207,8 @@ class Parser:
                | IDENTIFIER '=' funkcall
         """
         self.current_table.put(VariableSymbol(p[1], p[3].tipus))
-        print(f'{p[1]} = {p[3].value};')
+        print(f'{self.current_table.tabulation()}{p[1]} = {p[3].value};')
+        p[0] = p[1:]
 
 
     def p_funkcall(self, p):
@@ -220,11 +225,10 @@ class Parser:
     def p_paramcall(self, p):
         """
         paramcall : IDENTIFIER
-                    | INTEGER
-                    | FLOAT
-                    | BOOLEAN
-                    | CHAR
-                    | empty
+                    | INTEGER_VALUE
+                    | FLOAT_VALUE
+                    | BOOL_VALUE
+                    | CHAR_VALUE
         """
 
         # comrprovar tipus de params amb simbols de la taula
@@ -247,32 +251,32 @@ class Parser:
         else:
             raise CompileException(self, f"Not supported types for operating the operation {p[2]}")
         tmp = self.add_variable(Integer())
-        print(f'{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
+        print(f'{self.current_table.tabulation()}{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
         p[0] = Expr(Integer(), tmp)
         
 
     def p_expr_const_int(self, p):
         """
-        expr :   INTEGER 
+        expr :   INTEGER_VALUE
         """
         p[0] = Expr(Integer(), p[1])
 
 
     def p_expr_const_float(self, p):
         """
-        expr :   FLOAT
+        expr :   FLOAT_VALUE
         """
         p[0] = Expr(Float(), p[1])
 
     def p_expr_const_char(self, p):
         """
-        expr :   CHAR
+        expr :   CHAR_VALUE
         """
         p[0] = Expr(Char(), p[1])
 
     def p_expr_const_boolean(self, p):
         """
-        expr :   BOOLEAN
+        expr :   BOOL_VALUE
         """
         p[0] = Expr(Boolean(), p[1])
 
@@ -280,8 +284,6 @@ class Parser:
         """
         expr : IDENTIFIER
         """
-
-        
         var = self.current_table.get(p[1])
         if var:
             p[0] = Expr(var.type, p[1])
@@ -311,25 +313,13 @@ class Parser:
         return name
 
     def run(self):
-        read = lambda : input()
-        from_file = False
-        if len(sys.argv) > 1:
-            fitxer = open(sys.argv[1], mode="r")
-            read = lambda : fitxer.readline()
-            from_file = True
-        while True:
-            try:
-                s = read()[:-1]
-                if from_file and not s:
-                    break
-            except EOFError:    
-                break
-            if not s:
-                continue
-            try:
-                yacc.parse(s, debug=0)
-            except CompileException as e:
-                print(e.get_msg())
-                sys.exit()
+        with open(sys.argv[1]) as f:
+            input = f.read()
+        yacc.parse(input)
 
-Parser().run()
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) != 2:
+        print(f"usage: python main.py <file>")
+        sys.exit()
+    Parser().run()

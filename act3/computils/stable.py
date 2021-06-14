@@ -23,6 +23,8 @@ class SymbolTable:
         self.symbols: set[Symbol] = {}
         self.name: str = name
         self.parent: SymbolTable = parent
+        self.level = parent.level + 1 if parent else 0
+
 
     def put(self, symbol: Symbol):
         if self.symbols.__contains__(symbol.name):
@@ -47,3 +49,6 @@ class SymbolTable:
 
     def length(self):
         return len(self.symbols)
+
+    def tabulation(self) -> str:
+        return ''.join(['\t'] * self.level)

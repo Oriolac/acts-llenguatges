@@ -1,1 +1,3 @@
-a = 2 + 4 + 765 + 75;
+funk int func(int: b) {
+    retrunk b;
+}
