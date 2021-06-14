@@ -1,3 +1,1 @@
-funk int aisifunk (int: a, int: b){
-    return a+b;
-}
+funk int aisifunk (int: a, int: b){retrunk a+b;}
