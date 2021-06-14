@@ -1,3 +1,0 @@
-funk int func(int: b) {
-    retrunk b;
-}
