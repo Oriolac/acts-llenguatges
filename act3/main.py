@@ -4,6 +4,7 @@ import sys
 from computils.stable import *
 from computils.expr import Expr, Type, Boolean, Integer, Float, Char
 from computils.exceptions import CompileException
+from computils.conditions import ORCond, ANDCond
 
 class Parser:
 
@@ -26,6 +27,7 @@ class Parser:
         self.dict_ops_rel = dict(zip([self.t_NOT, self.t_EQ, self.t_NEQ, self.t_GT, self.t_LT, self.t_GE, self.t_LE], self.op_relacionals))
         self.current_table: SymbolTable = self.root_table
         self.dict_types = {'int': Integer(), 'float': Float(), 'char': Char(), 'bool': Boolean()}
+        self.num_cond_label = 0
 
     t_INTEGER_VALUE = r'\d+'
     t_FLOAT_VALUE = r'\d+\.\d*'
@@ -107,7 +109,6 @@ class Parser:
         programa :  programa sentence
                     | empty
         """
-        pass
 
     def p_sentence(self, p):
         """
@@ -122,17 +123,41 @@ class Parser:
         """
         cond : headCond '{' bodyCond '}' footCond
         """
-        print("AA")
 
     def p_headCond(self, p):
         """
         headCond : IF boolExpr
         """
+        print(f"Label {self.add_cond_label()}:")
 
     def p_boolExpr(self, p):
         """
-        boolExpr : expr
+        boolExpr : condExpr
         """
+        p[0] = p[1]
+
+    def p_condExpr_ifcases(self, p):
+        """
+        condExpr :  condExpr AND condExpr
+                    | condExpr OR condExpr
+                    | NOT condExpr
+        """
+        pass
+    
+    def p_condExpr_id(self, p):
+        """
+        condExpr :  IDENTIFIER
+        """
+        if not isinstance(p[1].tipus, Boolean):
+            raise CompileException("Condition is not Boolean")
+        p[0] = p[1]
+    
+    def p_condExpr_const(self, p):
+        """
+        condExpr : BOOL_VALUE
+        """
+        p[0] = p[1]
+
 
     def p_bodyCond(self, p):
         """
@@ -382,6 +407,10 @@ class Parser:
         if not self.current_table.put(VariableSymbol(name, tipus)) :
             raise CompileException(self, "State unreachable.")
         return name
+    
+    def add_cond_label(self):
+        self.num_cond_label += 1
+        return f"etiq{self.num_cond_label}"
 
     def run(self):
         with open(sys.argv[1]) as f:
