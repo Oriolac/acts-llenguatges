@@ -1,1 +1,12 @@
-funk int aisifunk (int: a, int: b){retrunk a+b;}
+funk int aisifunk (int: x1, int: x2){
+    retrunk x1 + x2;
+}
+
+funk char emptyfunk(){
+    retrunk 'c';
+}
+
+a = 2;
+b = 3;
+d = aisifunk(a, b);
+emptyfunk();
