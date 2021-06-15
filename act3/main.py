@@ -4,15 +4,15 @@ import sys
 from computils.stable import *
 from computils.expr import Expr, Type, Boolean, Integer, Float, Char
 from computils.exceptions import CompileException
-from computils.conditions import ORCond, ANDCond
+from computils.conditions import BinaryCondition, ORCond, ANDCond, NOTCond
 
 class Parser:
 
     identificadors = ('IDENTIFIER',)
     constants = ('INTEGER_VALUE', 'FLOAT_VALUE', 'BOOL_VALUE', 'CHAR_VALUE')
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
-    op_logics = ('AND', 'OR', 'XOR')
-    op_relacionals = ('NOT', 'EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
+    op_logics = ('AND', 'OR', 'XOR', 'NOT')
+    op_relacionals = ('EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
     reserved = ('IF', 'ELSE', 'ELIF', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE')
     tokens = identificadors + constants + op_arit + op_logics + op_relacionals + reserved
     literals = (';', '=', '(', ')', '{', '}', ',', ':')
@@ -76,6 +76,10 @@ class Parser:
         t_CHAR_TYPE : 'CHAR_TYPE',
         t_BOOL_TYPE : 'BOOL_TYPE',
         t_BOOL_VALUE : 'BOOL_VALUE',
+        t_AND : 'AND',
+        t_OR : 'OR',
+        t_XOR : 'XOR',
+        t_NOT : 'NOT'
     } 
     
     def t_error(self, t):
@@ -121,55 +125,42 @@ class Parser:
     
     def p_cond(self, p):
         """
-        cond : headCond '{' bodyCond '}' footCond
+        cond : ifCond elseCond
         """
+
+    def p_ifCond(self, p):
+        """
+        ifCond : headCond '{' bodyCond '}'
+        """
+        print(f"Label {p[1]}:")
 
     def p_headCond(self, p):
         """
-        headCond : IF boolExpr
+        headCond : IF expr
         """
-        print(f"Label {self.add_cond_label()}:")
-
-    def p_boolExpr(self, p):
-        """
-        boolExpr : condExpr
-        """
-        p[0] = p[1]
-
-    def p_condExpr_ifcases(self, p):
-        """
-        condExpr :  condExpr AND condExpr
-                    | condExpr OR condExpr
-                    | NOT condExpr
-        """
-        pass
-    
-    def p_condExpr_id(self, p):
-        """
-        condExpr :  IDENTIFIER
-        """
-        if not isinstance(p[1].tipus, Boolean):
-            raise CompileException("Condition is not Boolean")
-        p[0] = p[1]
-    
-    def p_condExpr_const(self, p):
-        """
-        condExpr : BOOL_VALUE
-        """
-        p[0] = p[1]
-
+        etiq = self.add_cond_label()
+        print(f"if false {p[2].value} goto {etiq}")
+        p[0] = etiq
 
     def p_bodyCond(self, p):
-        """
+        """ 
         bodyCond :  sentence bodyCond
                     | empty
         """
 
-    def p_footCond(self, p):
+
+    def p_elseCond_else(self, p):
         """
-        footCond :  ELIF boolExpr '{' bodyCond '}' footCond
-                    | ELSE '{' '}'
+        elseCond :   ELSE '{' bodyCond '}'
                     | empty
+        """
+        if len(p[1:]) == 4:
+            pass
+            
+
+    def p_elseCond_elif(self, p):
+        """
+        elseCond : ELIF expr '{' bodyCond '}' elseCond
         """
 
     def p_funk(self, p):
@@ -305,7 +296,6 @@ class Parser:
             tmp = self.add_variable(Float())
         else:
             raise CompileException(self, f"Not supported types for operating the operation {p[2]}")
-        tmp = self.add_variable(Integer())
         print(f'{self.current_table.tabulation()}{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
         p[0] = Expr(Integer(), tmp)
     
@@ -345,7 +335,9 @@ class Parser:
         """
         if not isinstance(p[2].tipus, Boolean):
             raise CompileException(self, f"Not supported types for operating the operation {p[0]}")
-        p[0] = Expr(Boolean(), p)
+        tmp = self.add_variable(p[2].tipus)
+        print(f'{tmp} = NOT {p[2].value};')
+        p[0] = Expr(Boolean(), tmp)
 
     def p_expr_const_int(self, p):
         """
@@ -377,7 +369,7 @@ class Parser:
         expr : IDENTIFIER
         """
         var = self.current_table.get(p[1])
-        if var and isinstance(var.type, (Float, Integer)):
+        if var:
             p[0] = Expr(var.type, p[1])
         else:
             raise CompileException(self, f"{p[1]} not found.")

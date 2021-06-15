@@ -1,1 +1,3 @@
-if 0 { }
+if not True and False {
+    a = 2;
+}

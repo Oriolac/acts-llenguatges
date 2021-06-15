@@ -1,2 +1,3 @@
 a = True;
 b = 0 < 0;
+c = True or False and False;
