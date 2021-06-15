@@ -1,3 +1,10 @@
 if not True and False {
-    a = 2;
+    a = 1;
 }
+a = 2;
+if True {
+    a = 3;
+} else {
+    a = 4;
+}
+a = 5;

@@ -1,0 +1,13 @@
+if True {
+    a = 1;
+} elif False or True {
+    a = 2;
+}
+b = 3;
+if b > 2 {
+    b = 2;
+} elif b < 2 {
+    b = 4;
+} else {
+    b = 0;
+}

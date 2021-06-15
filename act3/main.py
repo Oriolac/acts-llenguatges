@@ -28,6 +28,7 @@ class Parser:
         self.current_table: SymbolTable = self.root_table
         self.dict_types = {'int': Integer(), 'float': Float(), 'char': Char(), 'bool': Boolean()}
         self.num_cond_label = 0
+        self.level_if = 0;
 
     t_INTEGER_VALUE = r'\d+'
     t_FLOAT_VALUE = r'\d+\.\d*'
@@ -133,14 +134,15 @@ class Parser:
         """
         ifCond : headCond '{' bodyCond '}'
         """
-        print(f"Label {p[1]}:")
+        print(f"{self.tab()}Label {p[1]}:")
+        self.level_if += 1
 
     def p_headCond(self, p):
         """
         headCond : IF expr
         """
         etiq = self.add_cond_label()
-        print(f"if false {p[2].value} goto {etiq}")
+        print(f"{self.tab()}if false {p[2].value} goto {etiq}")
         p[0] = etiq
 
     def p_bodyCond(self, p):
@@ -153,15 +155,34 @@ class Parser:
     def p_elseCond_else(self, p):
         """
         elseCond :   ELSE '{' bodyCond '}'
-                    | empty
         """
-        if len(p[1:]) == 4:
-            pass
-            
+        self.level_if -= 1
+    
+    def p_elseCond_noop(self, p):
+        """
+        elseCond : empty
+        """
+        print(f"{self.tab()}noop;")
+        self.level_if -= 1
+
+    def p_elifCond(self, p):
+        """
+        elifCond : ELIF expr
+        """
+        etiq = self.add_cond_label()
+        print(f"{self.tab()}if false {p[2].value} goto {etiq}")
+        p[0] = etiq
+        
+    def p_headElifCond(self, p):
+        """
+        headElifCond : elifCond  '{' bodyCond '}'
+        """
+        print(f"{self.tab()}Label {p[1]}:")
+        self.level_if += 1
 
     def p_elseCond_elif(self, p):
         """
-        elseCond : ELIF expr '{' bodyCond '}' elseCond
+        elseCond : headElifCond elseCond
         """
 
     def p_funkdef(self, p):
@@ -182,14 +203,14 @@ class Parser:
         middlefunk : listfunkparams
         """
         for i, param in enumerate(p[1]):
-            print(f'{self.current_table.tabulation()}{param[0]} = param', i+1)
+            print(f'{self.tab()}{param[0]} = param', i+1)
         p[0] = p[1]
 
     def p_heading(self, p):
         """
         heading : FUNCTION typename IDENTIFIER
         """
-        print(f'{self.current_table.tabulation()}{self.t_FUNCTION} {p[3]}:')
+        print(f'{self.tab()}{self.t_FUNCTION} {p[3]}:')
         self.current_table = SymbolTable(self.current_table, p[3])
         p[0] = p[2], p[3]
         
@@ -243,7 +264,7 @@ class Parser:
         """
         returnsentence : expr ';'
         """
-        print(f'{self.current_table.tabulation()}{self.t_RETURN} {p[1].value};')
+        print(f'{self.tab()}{self.t_RETURN} {p[1].value};')
 
     def p_empty(self, p):
         """empty :"""
@@ -254,7 +275,7 @@ class Parser:
         asig : IDENTIFIER '=' expr
         """
         self.current_table.put(VariableSymbol(p[1], p[3].tipus))
-        print(f'{self.current_table.tabulation()}{p[1]} = {p[3].value};')
+        print(f'{self.tab()}{p[1]} = {p[3].value};')
         p[0] = p[1:]
 
 
@@ -295,9 +316,9 @@ class Parser:
             expected_type = self.dict_types.get(funk.arguments[len(p[3]) - i -1][1])
             if expected_type != actual_type:
                 raise CompileException(self, f"Argument {ident} type is {actual_type} and should be {expected_type}")
-            print(f'param {ident}')
+            print(f'{self.tab()}param {ident}')
             
-        print(f'call {p[1]}')
+        print(f'{self.tab()}call {p[1]}')
         p[0] = Expr(funk.type, '$SP')
 
     def p_funkcall_empty(self, p):
@@ -312,7 +333,7 @@ class Parser:
         if len(funk.arguments) != 0:
             raise CompileException(self, f"Function {p[1]} doesn't accept any argument.")
 
-        print(f'call {p[1]}')
+        print(f'{self.tab()}call {p[1]}')
         p[0] = Expr(funk.type, '$SP')
 
     def p_expr_funkcall(self, p):
@@ -336,7 +357,7 @@ class Parser:
             tmp = self.add_variable(Float())
         else:
             raise CompileException(self, f"Not supported types for operating the operation {p[2]}")
-        print(f'{self.current_table.tabulation()}{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
+        print(f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
         p[0] = Expr(Integer(), tmp)
     
     
@@ -350,7 +371,7 @@ class Parser:
         if isinstance(p[1].tipus, Boolean) and p[1].tipus != p[3].tipus:
             raise CompileException(self, f"Not supported types for operating the operation {p[2]}")
         tmp = self.add_variable(Boolean())
-        print(f'{self.current_table.tabulation()}{tmp} = {p[1].value} {self.dict_ops_bool[p[2]]} {p[3].value};')
+        print(f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_bool[p[2]]} {p[3].value};')
         p[0] = Expr(Boolean(), tmp)
 
     def p_expr_boolcomparison(self, p):
@@ -364,7 +385,7 @@ class Parser:
         """
         if p[1].tipus == p[3].tipus or isinstance(p[1].tipus, (Float, Integer)) and isinstance(p[3].tipus, (Float, Integer)):
             tmp = self.add_variable(Boolean())
-            print(f'{self.current_table.tabulation()}{tmp} = {p[1].value} {self.dict_ops_rel[p[2]]} {p[3].value};')
+            print(f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_rel[p[2]]} {p[3].value};')
             p[0] = Expr(Boolean(), tmp)
         else:
             raise CompileException(self, f"Not supported types for operating the operation {p[2]}")
@@ -376,7 +397,7 @@ class Parser:
         if not isinstance(p[2].tipus, Boolean):
             raise CompileException(self, f"Not supported types for operating the operation {p[0]}")
         tmp = self.add_variable(p[2].tipus)
-        print(f'{tmp} = NOT {p[2].value};')
+        print(f'{self.tab()}{tmp} = NOT {p[2].value};')
         p[0] = Expr(Boolean(), tmp)
 
     def p_expr_const_int(self, p):
@@ -421,7 +442,7 @@ class Parser:
         if not isinstance(p[2].tipus, (Float, Integer)):
             raise CompileException(f"RESTA is not allowed for type {p[2].tipus}")
         tmp = self.add_variable(p[2].tipus)
-        print(f'{tmp} = URESTA {p[2].value};')
+        print(f'{self.tab()}{tmp} = URESTA {p[2].value};')
         p[0] = Expr(p[2].tipus, tmp)
 
     def p_expr_usuma(self, p):
@@ -431,7 +452,7 @@ class Parser:
         if not isinstance(p[2].tipus, (Float, Integer)):
             raise CompileException(f"SUMA is not allowed for type {p[2].tipus}")
         tmp = self.add_variable(p[2].tipus)
-        print(f'{tmp} = USUMA {p[2].value};')
+        print(f'{self.tab()}{tmp} = USUMA {p[2].value};')
         p[0] = Expr(p[2].tipus, tmp)
 
     def add_variable(self, tipus: Type):
@@ -443,6 +464,12 @@ class Parser:
     def add_cond_label(self):
         self.num_cond_label += 1
         return f"etiq{self.num_cond_label}"
+
+    def level_tab_if(self):
+        return ''.join(['\t'] * self.level_if)
+
+    def tab(self):
+        return f"{self.current_table.tabulation()}{self.level_tab_if()}"
 
     def run(self):
         with open(sys.argv[1]) as f:
