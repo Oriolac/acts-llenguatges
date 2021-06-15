@@ -121,6 +121,7 @@ class Parser:
                     | asig ';'
                     | funkdef
                     | cond
+                    | loop
                     | funkcall
         """
         self.num_line += 1
@@ -141,6 +142,8 @@ class Parser:
         """
         headCond : IF expr
         """
+        if not isinstance(p[2].tipus, Boolean):
+            raise CompileException("The condition is not boolean")
         etiq = self.add_cond_label()
         print(f"{self.tab()}if false {p[2].value} goto {etiq}")
         p[0] = etiq
@@ -169,6 +172,8 @@ class Parser:
         """
         elifCond : ELIF expr
         """
+        if not isinstance(p[2].tipus, Boolean):
+            raise CompileException(self, "The condition is not boolean")
         etiq = self.add_cond_label()
         print(f"{self.tab()}if false {p[2].value} goto {etiq}")
         p[0] = etiq
@@ -183,6 +188,53 @@ class Parser:
     def p_elseCond_elif(self, p):
         """
         elseCond : headElifCond elseCond
+        """
+    
+    def p_loop(self, p):
+        """
+        loop : headWhile footWhile
+        """
+        print(f"{self.tab()}goto {p[1][1]}")
+        self.level_if -= 1
+        print(f"{self.tab()}Label {p[1][1]}:")
+        self.level_if += 1
+        print(f"{self.tab()}halt")
+        self.level_if -= 1
+
+    def p_headWhile(self, p):
+        """
+        headWhile : addLabelWhile condWhile
+        """
+        print(f"{self.tab()}if false {p[2].value} goto {p[1][1]}")
+        p[0] = p[1]
+
+
+    def p_addLabelWhile(self, p):
+        """
+        addLabelWhile : WHILE
+        """
+        etiq = self.add_cond_label()
+        print(f'Label {etiq}:')
+        self.level_if += 1
+        etiqEnd = self.add_cond_label()
+        p[0] = etiq, etiqEnd
+
+    def p_condWhile(self, p):
+        """
+        condWhile : expr
+        """
+        p[0] = p[1]
+        
+    def p_footWhile(self, p):
+        """
+        footWhile : '{' bodyWhile '}' 
+        """
+
+        
+    def p_bodyWhile(self, p):
+        """
+        bodyWhile : sentence bodyWhile
+                    | empty
         """
 
     def p_funkdef(self, p):
@@ -481,4 +533,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print(f"usage: python main.py <file>")
         sys.exit()
-    Parser().run()
+    try :
+        Parser().run()
+    except CompileException as e:
+        print(e.get_msg())
