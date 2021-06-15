@@ -118,8 +118,9 @@ class Parser:
         """
         sentence :  empty ';'
                     | asig ';'
-                    | funk
+                    | funkdef
                     | cond
+                    | funkcall
         """
         self.num_line += 1
     
@@ -163,16 +164,16 @@ class Parser:
         elseCond : ELIF expr '{' bodyCond '}' elseCond
         """
 
-    def p_funk(self, p):
+    def p_funkdef(self, p):
         """
-        funk : heading '(' middlefunk ')' footing
+        funkdef : heading '(' middlefunk ')' footing
         """
         self.current_table.put(FunctionSymbol(p[1][1], p[1][0], p[3]))
         p[0] = p[1:]
 
     def p_funk_empy(self, p):
         """
-        funk : heading '(' ')' footing
+        funkdef : heading '(' ')' footing
         """
         self.current_table.put(FunctionSymbol(p[1][1], p[1][0], []))
 
@@ -257,29 +258,68 @@ class Parser:
         p[0] = p[1:]
 
 
-
     def p_paramscall(self, p):
         """
         paramscall : paramcall ',' paramscall
                     | paramcall
         """
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = [p[1]] + p[3]
 
     def p_paramcall(self, p):
         """
-        paramcall : IDENTIFIER
-                    | INTEGER_VALUE
-                    | FLOAT_VALUE
-                    | BOOL_VALUE
-                    | CHAR_VALUE
+        paramcall : expr
         """
+        p[0] = p[1]
 
-        # comrprovar tipus de params amb simbols de la taula
+    def p_funkcall(self, p):
+        """
+        funkcall : IDENTIFIER '(' paramscall ')'
+        """
+        if not self.current_table.has(p[1]):
+            raise CompileException(self, f"Function {p[1]} is not defined yet.")
+      
+        funk = self.current_table.get(p[1])
+
+        if len(funk.arguments) > len(p[3]):
+            raise CompileException(self, f"Not enough arguments for function {p[1]}")
+        elif len(funk.arguments) < len(p[3]):
+            raise CompileException(self, f"Too many arguments for function {p[1]}")
+
+        
+        for i, expr in enumerate(reversed(p[3])):
+            actual_type = expr.tipus
+            ident = expr.value
+            expected_type = self.dict_types.get(funk.arguments[len(p[3]) - i -1][1])
+            if expected_type != actual_type:
+                raise CompileException(self, f"Argument {ident} type is {actual_type} and should be {expected_type}")
+            print(f'param {ident}')
+            
+        print(f'call {p[1]}')
+        p[0] = Expr(funk.type, '$SP')
+
+    def p_funkcall_empty(self, p):
+        """
+        funkcall : IDENTIFIER '(' ')'
+        """
+        if not self.current_table.has(p[1]):
+            raise CompileException(self, f"Function {p[1]} is not defined yet.")
+      
+        funk = self.current_table.get(p[1])
+
+        if len(funk.arguments) != 0:
+            raise CompileException(self, f"Function {p[1]} doesn't accept any argument.")
+
+        print(f'call {p[1]}')
+        p[0] = Expr(funk.type, '$SP')
 
     def p_expr_funkcall(self, p):
         """
-        expr : IDENTIFIER '(' paramscall ')' 
+        expr : funkcall
         """
-        p[0] = Expr(Integer(), p[1])
+        p[0] = p[1]
 
     def p_expr(self, p):
         """
