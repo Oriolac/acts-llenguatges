@@ -1,15 +1,23 @@
 from __future__ import annotations
-from .expr import Type
 
-from abc import ABC
+from typing import Dict
+from .expr import Expr, Type
+
+from abc import ABC, abstractmethod
 
 class Symbol(ABC):
     def __init__(self, name, tipus):
         self.name = name
         self.type: Type = tipus
 
+    @abstractmethod
+    def getSize(self):
+        pass
+
 class VariableSymbol(Symbol):
-    pass
+    
+    def getSize(self):
+        return self.type.getSize()
 
 class FunctionSymbol(Symbol):
     def __init__(self, name, tipus, arguments):
@@ -17,17 +25,20 @@ class FunctionSymbol(Symbol):
         self.type = tipus
         self.arguments = arguments
 
+    def getSize(self):
+        return None
+
 class SymbolTable:
 
     def __init__(self, parent: SymbolTable, name: str):
-        self.symbols: set[Symbol] = {}
+        self.symbols: Dict[Symbol] = {}
         self.name: str = name
         self.parent: SymbolTable = parent
         self.level = parent.level + 1 if parent else 0
 
 
     def put(self, symbol: Symbol):
-        if self.symbols.__contains__(symbol.name):
+        if self.symbols.__contains__(symbol.name) and not isinstance(symbol.type, self.symbols[symbol.name].__class__):
             return False
         else:
             self.symbols[symbol.name]= symbol

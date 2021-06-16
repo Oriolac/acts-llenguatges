@@ -4,7 +4,6 @@ import sys
 from computils.stable import *
 from computils.expr import Expr, Type, Boolean, Integer, Float, Char
 from computils.exceptions import CompileException
-from computils.conditions import BinaryCondition, ORCond, ANDCond, NOTCond
 
 class Parser:
 
@@ -13,9 +12,9 @@ class Parser:
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
     op_logics = ('AND', 'OR', 'XOR', 'NOT')
     op_relacionals = ('EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
-    reserved = ('IF', 'ELSE', 'ELIF', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE')
+    reserved = ('IF', 'ELSE', 'ELIF', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE', 'FOR', 'USING')
     tokens = identificadors + constants + op_arit + op_logics + op_relacionals + reserved
-    literals = (';', '=', '(', ')', '{', '}', ',', ':')
+    literals = (';', '=', '(', ')', '{', '}', ',', ':')   
 
     def __init__(self):
         self.lex = lex.lex(module=self)
@@ -24,7 +23,7 @@ class Parser:
         self.root_table: SymbolTable = SymbolTable(None, '')
         self.dict_ops_arit = dict(zip(['+', '-', '*', '/', '%', '**'], self.op_arit))
         self.dict_ops_bool = dict(zip(['and', 'or', 'xor'], self.op_logics))
-        self.dict_ops_rel = dict(zip([self.t_NOT, self.t_EQ, self.t_NEQ, self.t_GT, self.t_LT, self.t_GE, self.t_LE], self.op_relacionals))
+        self.dict_ops_rel = dict(zip([self.t_EQ, self.t_NEQ, self.t_GT, self.t_LT, self.t_GE, self.t_LE], self.op_relacionals))
         self.current_table: SymbolTable = self.root_table
         self.dict_types = {'int': Integer(), 'float': Float(), 'char': Char(), 'bool': Boolean()}
         self.num_cond_label = 0
@@ -64,6 +63,8 @@ class Parser:
     t_FLOAT_TYPE = r'float'
     t_CHAR_TYPE = r'char'
     t_BOOL_TYPE = r'bool'
+    t_FOR = r'for'
+    t_USING = r'using'
 
     reserved = {
         t_IF : 'IF',
@@ -80,7 +81,9 @@ class Parser:
         t_AND : 'AND',
         t_OR : 'OR',
         t_XOR : 'XOR',
-        t_NOT : 'NOT'
+        t_NOT : 'NOT',
+        t_FOR : 'FOR',
+        t_USING : 'USING'
     } 
     
     def t_error(self, t):
@@ -123,6 +126,7 @@ class Parser:
                     | cond
                     | loop
                     | funkcall
+                    | for
         """
         self.num_line += 1
     
@@ -201,9 +205,48 @@ class Parser:
         print(f"{self.tab()}halt")
         self.level_if -= 1
 
+    def p_for(self, p):
+        """
+        for : forcond
+        """
+        self.level_if -= 1
+        print(f"{self.tab()}Label {p[1][4]}:")
+        self.level_if += 1
+        print(f"{self.tab()}halt")
+        self.level_if -= 1
+
+    def p_forcond(self, p):
+        """
+        forcond : FOR '(' asig ';' checkAssig ')' '{' forBody '}' USING asig ';'
+        """
+        p[0] = p[1:]
+
+    def p_checkAssig(self, p):
+        """
+        checkAssig : startLabel condExpr
+        """
+        etiq = self.add_cond_label()
+        print(f"{self.tab()}if false goto {etiq}")
+        p[0] = etiq
+
+    def p_startLabel(self, p):
+        """
+        startLabel : empty
+        """
+        etiq = self.add_cond_label()
+        print(f"{self.tab()}Label {etiq}")
+        self.level_if += 1
+        p[0] = etiq
+    
+    def p_forBody(self, p):
+        """
+        forBody : sentence forBody
+                    | empty
+        """
+
     def p_headWhile(self, p):
         """
-        headWhile : addLabelWhile condWhile
+        headWhile : addLabelWhile condExpr
         """
         print(f"{self.tab()}if false {p[2].value} goto {p[1][1]}")
         p[0] = p[1]
@@ -214,15 +257,17 @@ class Parser:
         addLabelWhile : WHILE
         """
         etiq = self.add_cond_label()
-        print(f'Label {etiq}:')
+        print(f'{self.tab()}Label {etiq}:')
         self.level_if += 1
         etiqEnd = self.add_cond_label()
         p[0] = etiq, etiqEnd
 
-    def p_condWhile(self, p):
+    def p_condExpr(self, p):
         """
-        condWhile : expr
+        condExpr : expr
         """
+        if not isinstance(p[1].tipus, Boolean):
+            raise CompileException(self, "Expression must be boolean.")
         p[0] = p[1]
         
     def p_footWhile(self, p):
@@ -319,17 +364,24 @@ class Parser:
         print(f'{self.tab()}{self.t_RETURN} {p[1].value};')
 
     def p_empty(self, p):
-        """empty :"""
+        """
+        empty :
+        """
         pass
     
     def p_asig(self, p):
         """
-        asig : IDENTIFIER '=' expr
+        asig : memoryVariable '=' expr
         """
         self.current_table.put(VariableSymbol(p[1], p[3].tipus))
         print(f'{self.tab()}{p[1]} = {p[3].value};')
         p[0] = p[1:]
-
+    
+    def p_memoryVariable_identifier(self, p):
+        """
+        memoryVariable : IDENTIFIER
+        """
+        p[0] = p[1]
 
     def p_paramscall(self, p):
         """
@@ -388,6 +440,7 @@ class Parser:
         print(f'{self.tab()}call {p[1]}')
         p[0] = Expr(funk.type, '$SP')
 
+    
     def p_expr_funkcall(self, p):
         """
         expr : funkcall
