@@ -12,7 +12,7 @@ class Parser:
     op_arit = ( 'SUMA', 'RESTA', 'MULT', 'DIV', 'MOD', 'POW')
     op_logics = ('AND', 'OR', 'XOR', 'NOT')
     op_relacionals = ('EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
-    reserved = ('IF', 'ELSE', 'ELIF', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE', 'FOR', 'USING')
+    reserved = ('IF', 'ELSE', 'ELIF', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE', 'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE', 'FOR', 'USING', 'REPEAT', 'UNTIL')
     tokens = identificadors + constants + op_arit + op_logics + op_relacionals + reserved
     literals = (';', '=', '(', ')', '{', '}', ',', ':')   
 
@@ -44,7 +44,7 @@ class Parser:
     t_AND = r'and'
     t_OR = r'or'
     t_XOR = r'xor'
-    t_NOT = r'(not|\!)'
+    t_NOT = r'(not)'
     t_EQ = r'=='
     t_NEQ = r'!='
     t_GT = r'>'
@@ -65,6 +65,8 @@ class Parser:
     t_BOOL_TYPE = r'bool'
     t_FOR = r'for'
     t_USING = r'using'
+    t_REPEAT = r'repeat'
+    t_UNTIL = r'until'
 
     reserved = {
         t_IF : 'IF',
@@ -83,7 +85,9 @@ class Parser:
         t_XOR : 'XOR',
         t_NOT : 'NOT',
         t_FOR : 'FOR',
-        t_USING : 'USING'
+        t_USING : 'USING',
+        t_REPEAT : 'REPEAT',
+        t_UNTIL : 'UNTIL'
     } 
     
     def t_error(self, t):
@@ -125,6 +129,7 @@ class Parser:
                     | funkdef
                     | cond
                     | loop
+                    | repeat
                     | funkcall
                     | for
         """
@@ -193,17 +198,6 @@ class Parser:
         """
         elseCond : headElifCond elseCond
         """
-    
-    def p_loop(self, p):
-        """
-        loop : headWhile footWhile
-        """
-        print(f"{self.tab()}goto {p[1][1]}")
-        self.level_if -= 1
-        print(f"{self.tab()}Label {p[1][1]}:")
-        self.level_if += 1
-        print(f"{self.tab()}halt")
-        self.level_if -= 1
 
     def p_for(self, p):
         """
@@ -243,6 +237,42 @@ class Parser:
         forBody : sentence forBody
                     | empty
         """
+
+    def p_repeat(self, p):
+        """
+        repeat : startRepeat REPEAT '{' repeatBody '}' UNTIL '(' expr ')'
+        """
+        cond = p[8].value
+        tmp = self.add_variable(Boolean())
+        print(f"{self.tab()}{tmp} = NOT {cond}")
+        print(f"{self.tab()}if false {tmp} go to {p[1]}")
+        self.level_if -= 1
+
+    def p_startRepeat(self, p):
+        """
+        startRepeat : empty
+        """
+        etiq = self.add_cond_label()
+        print(f"{self.tab()}Label {etiq}:")
+        self.level_if += 1
+        p[0] = etiq
+
+    def p_repeatBody(self, p):
+        """
+        repeatBody : sentence repeatBody
+                    | empty 
+        """
+
+    def p_loop(self, p):
+        """
+        loop : headWhile footWhile
+        """
+        print(f"{self.tab()}goto {p[1][1]}")
+        self.level_if -= 1
+        print(f"{self.tab()}Label {p[1][1]}:")
+        self.level_if += 1
+        print(f"{self.tab()}halt")
+        self.level_if -= 1
 
     def p_headWhile(self, p):
         """
