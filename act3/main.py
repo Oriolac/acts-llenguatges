@@ -485,7 +485,9 @@ class Parser:
             tipus = List()
             tmp = self.add_variable(tipus)
         else:
-            tipus = List(elementType=p[2][0].tipus)
+            print(p[2])
+            tipus = List(p[2])
+            print(tipus)
             tmp = self.add_variable(tipus)
         p[0] = Expr(tipus=tipus, value=tmp)
 

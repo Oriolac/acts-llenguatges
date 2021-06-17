@@ -1,8 +1,10 @@
 from __future__ import annotations
+from computils.exceptions import CompileException
 
 from dataclasses import dataclass
 from typing import Any, Optional
 from abc import ABC, abstractmethod
+from functools import reduce
 
 
 @dataclass
@@ -53,11 +55,21 @@ class Char(Type):
 
 class List(Type):
 
-    def __init__(self, elementType: Optional[Type] = None):
-        self.elementType: Optional[Type] = elementType
+    def __init__(self, exprs: List[Expr] = []):
+        if exprs == []:
+            self.elementsType = []
+            self.type = None
+        else:
+            print(exprs)
+            self.elementsType = list(map(lambda x: x.tipus, exprs))
+            for i, elem  in enumerate(self.elementsType):
+                if not self.elementsType[i-1].isInstance(self.elementsType[i]):
+                    raise CompileException("Not correct types")
+            self.type = Num() if isinstance(self.elementsType[0], (Float, Integer)) else self.elementsType[0]
+        self.numElements: int = len(exprs)
 
-    def getSize(self, list):
-        return lambda x: x.size()
+    def getSize(self):
+        return sum(map(lambda x: x.getSize(), self.elementsType))
     
     def isInstance(self, obj):
         if not isinstance(obj, List):
@@ -66,3 +78,5 @@ class List(Type):
             return obj.elementType.isInstance(self.elementType)
         return self.elementType.isInstance(obj.elementType)
 
+    def __str__(self):
+        return f"List{self.type})[{self.numElements}]{self.elementsType}"
