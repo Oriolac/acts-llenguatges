@@ -1,17 +1,21 @@
 from __future__ import annotations
 from computils.exceptions import CompileException
+from computils.node import Node
 
 from dataclasses import dataclass
 from typing import Any, Optional
 from abc import ABC, abstractmethod
 from functools import reduce
 
-
-@dataclass
 class Expr:
-    tipus: Type
-    value: Any
 
+    def __init__(self, tipus: Type, value: Any, node: Node):
+        self.tipus: Type = tipus
+        self.value: Any = value
+        self.node = node
+
+    def __str__(self) -> str:
+        return f"{self.tipus}, {self.value}, {self.node}"
 
 @dataclass
 class Type(ABC):

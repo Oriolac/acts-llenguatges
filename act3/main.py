@@ -4,7 +4,7 @@ import sys
 from computils.stable import *
 from computils.expr import Expr, Type, Boolean, Integer, Float, Char, List
 from computils.exceptions import CompileException
-
+from computils.node import Node
 
 class Parser:
 
@@ -14,7 +14,7 @@ class Parser:
     op_logics = ('AND', 'OR', 'XOR', 'NOT')
     op_relacionals = ('EQ', 'NEQ', 'GT', 'LT', 'GE', 'LE')
     reserved = ('IF', 'ELSE', 'ELIF', 'WHILE', 'FUNCTION', 'RETURN', 'INT_TYPE',
-                'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE', 'FOR', 'USING', 'REPEAT', 'UNTIL')
+                'FLOAT_TYPE', 'CHAR_TYPE', 'BOOL_TYPE', 'FOR', 'REPEAT', 'UNTIL')
     tokens = identificadors + constants + op_arit + \
         op_logics + op_relacionals + reserved
     literals = (';', '=', '(', ')', '{', '}', ',', ':', '[', ']')
@@ -69,7 +69,6 @@ class Parser:
     t_CHAR_TYPE = r'char'
     t_BOOL_TYPE = r'bool'
     t_FOR = r'for'
-    t_USING = r'using'
     t_REPEAT = r'repeat'
     t_UNTIL = r'until'
 
@@ -90,7 +89,6 @@ class Parser:
         t_XOR: 'XOR',
         t_NOT: 'NOT',
         t_FOR: 'FOR',
-        t_USING: 'USING',
         t_REPEAT: 'REPEAT',
         t_UNTIL: 'UNTIL'
     }
@@ -122,11 +120,19 @@ class Parser:
         ('right', 'USUMA', 'URESTA'),
     )
 
+    def p_start(self, p):
+        """
+        start : programa
+        """
+        p[1].print()
+
     def p_programa(self, p):
         """
-        programa :  programa sentence
+        programa :  sentence programa
                     | empty
         """
+        p[0] = Node(None, p[1], p[2]) if len(p[1:]) == 2 else Node(None, p[1])
+
 
     def p_sentence(self, p):
         """
@@ -136,50 +142,62 @@ class Parser:
                     | cond
                     | loop
                     | repeat
-                    | funkcall
                     | for
         """
         self.num_line += 1
+        p[0] = p[1]
+
+    def p_sentence_funkcall(self, p):
+        """
+        sentence : funkcall
+        """
+        p[0] = p[1].node
 
     def p_cond(self, p):
         """
         cond : ifCond elseCond
         """
+        p[0] = Node(None, p[1], p[2])
 
     def p_ifCond(self, p):
         """
         ifCond : headCond '{' bodyCond '}'
         """
-        print(f"{self.tab()}Label {p[1]}:")
+        antec = Node(None, p[1][1], p[3])
+        node = Node(f"{self.tab()}Label {p[1][0]}:", antec)
         self.level_if += 1
+        p[0] = node
 
     def p_headCond(self, p):
         """
-        headCond : IF expr
+        headCond : IF expr 
         """
         if not isinstance(p[2].tipus, Boolean):
             raise CompileException("The condition is not boolean")
         etiq = self.add_cond_label()
-        print(f"{self.tab()}if false {p[2].value} goto {etiq}")
-        p[0] = etiq
+        node = Node(f"{self.tab()}if false {p[2].value} goto {etiq}", p[2].node)
+        p[0] = etiq, node
 
     def p_bodyCond(self, p):
         """ 
         bodyCond :  sentence bodyCond
                     | empty
         """
+        node = Node(None, p[1], p[2]) if len(p[1:]) == 2 else Node(None, p[1])
+        p[0] = node
 
     def p_elseCond_else(self, p):
         """
         elseCond :   ELSE '{' bodyCond '}'
         """
         self.level_if -= 1
+        p[0] = Node(None, p[3])
 
     def p_elseCond_noop(self, p):
         """
         elseCond : empty
         """
-        print(f"{self.tab()}noop;")
+        p[0] = Node(f"{self.tab()}noop;", p[1])
         self.level_if -= 1
 
     def p_elifCond(self, p):
@@ -189,112 +207,141 @@ class Parser:
         if not isinstance(p[2].tipus, Boolean):
             raise CompileException(self, "The condition is not boolean")
         etiq = self.add_cond_label()
-        print(f"{self.tab()}if false {p[2].value} goto {etiq}")
-        p[0] = etiq
+        node = Node(f"{self.tab()}if false {p[2].value} goto {etiq}", p[2].node)
+        p[0] = etiq, node
 
     def p_headElifCond(self, p):
         """
         headElifCond : elifCond  '{' bodyCond '}'
         """
-        print(f"{self.tab()}Label {p[1]}:")
+        antec = Node(None, p[1][1], p[3])
+        p[0] = Node(f"{self.tab()}Label {p[1][0]}:", antec)
         self.level_if += 1
 
     def p_elseCond_elif(self, p):
         """
         elseCond : headElifCond elseCond
         """
+        p[0] = Node(None, p[1], p[2])
 
     def p_for(self, p):
         """
         for : forcond
         """
         self.level_if -= 1
-        print(f"{self.tab()}Label {p[1][4]}:")
+        labeltag = Node(f"{self.tab()}Label {p[1][0]}:")
         self.level_if += 1
-        print(f"{self.tab()}halt")
+        halt = Node(f"{self.tab()}halt")
         self.level_if -= 1
+        antec = Node(None, labeltag, halt)
+        p[0] = Node(None, p[1][1], antec)
 
     def p_forcond(self, p):
         """
-        forcond : FOR '(' asig ';' checkAssig ')' '{' forBody '}' USING asig ';'
+        forcond : FOR '(' asig ';' checkAssig ';' forasigs ')' '{' forBody '}'
         """
-        p[0] = p[1:]
+        left = Node(None, p[3], p[5][1])
+        right =Node(None, p[10], p[7])
+        node = Node(None, left, right)
+        p[0] =  p[5][0], node
+
+    def p_forasigs(self, p):
+        """
+        forasigs : asig forasigs
+                    | asig
+        """
+        p[0] = Node(None, p[1], p[2]) if len(p[1:]) == 2 else Node(None, p[1])
 
     def p_checkAssig(self, p):
         """
         checkAssig : startLabel condExpr
         """
         etiq = self.add_cond_label()
-        print(f"{self.tab()}if false goto {etiq}")
-        p[0] = etiq
+        antec = Node(None, p[1][1], p[2].node)
+        node = Node(f"{self.tab()}if false goto {etiq}", antec)
+        p[0] = etiq, node
 
     def p_startLabel(self, p):
         """
         startLabel : empty
         """
         etiq = self.add_cond_label()
-        print(f"{self.tab()}Label {etiq}")
+        node = Node(f"{self.tab()}Label {etiq}")
         self.level_if += 1
-        p[0] = etiq
+        p[0] = etiq, node
 
     def p_forBody(self, p):
         """
         forBody : sentence forBody
                     | empty
         """
+        p[0] = Node(None, p[1], p[2]) if len(p[1:]) == 2 else Node(None, p[1])
+
 
     def p_repeat(self, p):
         """
         repeat : startRepeat REPEAT '{' repeatBody '}' UNTIL '(' expr ')'
         """
+        left = Node(None, p[1][1], p[4])
+        right = Node(None, p[8].node)
+        antec = Node(None, left, right)
         cond = p[8].value
         tmp = self.add_variable(Boolean())
-        print(f"{self.tab()}{tmp} = NOT {cond}")
-        print(f"{self.tab()}if false {tmp} go to {p[1]}")
+        first = Node(f"{self.tab()}{tmp} = NOT {cond}")
+        second = Node(f"{self.tab()}if false {tmp} go to {p[1][0]}")
+        post = Node(None, first, second)
+        node = Node(None, antec, post)
         self.level_if -= 1
+        p[0] = node
 
     def p_startRepeat(self, p):
         """
         startRepeat : empty
         """
         etiq = self.add_cond_label()
-        print(f"{self.tab()}Label {etiq}:")
+        node = Node(f"{self.tab()}Label {etiq}:")
         self.level_if += 1
-        p[0] = etiq
+        p[0] = etiq, node
 
     def p_repeatBody(self, p):
         """
         repeatBody : sentence repeatBody
                     | empty 
         """
+        p[0] = Node(None, p[1], p[2]) if len(p[1:]) == 2 else Node(None, p[1])
 
     def p_loop(self, p):
         """
         loop : headWhile footWhile
         """
-        print(f"{self.tab()}goto {p[1][1]}")
+        antec = Node(None, p[1][1], p[2])
+        first = Node(f"{self.tab()}goto {p[1][0]}")
         self.level_if -= 1
-        print(f"{self.tab()}Label {p[1][1]}:")
+        second = Node(f"{self.tab()}Label {p[1][0]}:")
         self.level_if += 1
-        print(f"{self.tab()}halt")
+        third = Node(f"{self.tab()}halt")
         self.level_if -= 1
+        left = Node(None, antec, first)
+        right = Node(None, second, third)
+        p[0] = Node(None, left, right)
 
     def p_headWhile(self, p):
         """
         headWhile : addLabelWhile condExpr
         """
-        print(f"{self.tab()}if false {p[2].value} goto {p[1][1]}")
-        p[0] = p[1]
+        antec = Node(None, p[1][2], p[2].node)
+        node = Node(f"{self.tab()}if false {p[2].value} goto {p[1][1]}", antec)
+        p[0] = p[1][1], node
 
     def p_addLabelWhile(self, p):
         """
         addLabelWhile : WHILE
         """
         etiq = self.add_cond_label()
-        print(f'{self.tab()}Label {etiq}:')
+        node = Node(f'{self.tab()}Label {etiq}:')
         self.level_if += 1
         etiqEnd = self.add_cond_label()
-        p[0] = etiq, etiqEnd
+        p[0] = etiq, etiqEnd, node
 
     def p_condExpr(self, p):
         """
@@ -308,47 +355,54 @@ class Parser:
         """
         footWhile : '{' bodyWhile '}' 
         """
+        p[0] = p[2]
 
     def p_bodyWhile(self, p):
         """
         bodyWhile : sentence bodyWhile
                     | empty
         """
+        p[0] = Node(None, p[1], p[2]) if len(p[1:]) == 2 else Node(None, p[1])
 
     def p_funkdef(self, p):
         """
         funkdef : heading '(' middlefunk ')' footing
         """
-        self.current_table.put(FunctionSymbol(p[1][1], p[1][0], p[3]))
-        p[0] = p[1:]
+        self.current_table.put(FunctionSymbol(p[1][1], p[1][0], p[3][0]))
+        left = Node(None, p[1][2], p[3][1])
+        node = Node(None, left, p[5])
+        p[0] = node
 
     def p_funk_empy(self, p):
         """
         funkdef : heading '(' ')' footing
         """
         self.current_table.put(FunctionSymbol(p[1][1], p[1][0], []))
+        p[0] = Node(None, p[1][2], p[4])
 
     def p_middlefunk(self, p):
         """
         middlefunk : listfunkparams
         """
+        prec = Node()
         for i, param in enumerate(p[1]):
-            print(f'{self.tab()}{param[0]} = param', i+1)
-        p[0] = p[1]
+            prec = Node(f'{self.tab()}{param[0]} = param {i+1}', prec)
+        p[0] = p[1], prec
 
     def p_heading(self, p):
         """
         heading : FUNCTION typename IDENTIFIER
         """
-        print(f'{self.tab()}{self.t_FUNCTION} {p[3]}:')
+        node = Node(f'{self.tab()}{self.t_FUNCTION} {p[3]}:')
         self.current_table = SymbolTable(self.current_table, p[3])
-        p[0] = p[2], p[3]
+        p[0] = p[2], p[3], node
 
     def p_footing(self, p):
         """
         footing : '{' bodyfunk '}'
         """
         self.current_table = self.current_table.parent
+        p[0] = p[2]
 
     def p_typename(self, p):
         """
@@ -379,33 +433,36 @@ class Parser:
     def p_bodyfunk(self, p):
         """
         bodyfunk : bodysentence bodyfunk
-                   | RETURN returnsentence
+                   | RETURN returnsentence empty
         """
+        p[0] = Node(None, p[1], p[2]) if len(p[1:]) == 2 else Node(None, p[2])
+
 
     def p_bodysentence(self, p):
         """
         bodysentence : sentence
         """
+        p[0] = p[1]
 
     def p_returnsentence(self, p):
         """
         returnsentence : expr ';'
         """
-        print(f'{self.tab()}{self.t_RETURN} {p[1].value};')
+        p[0] = Node(f'{self.tab()}{self.t_RETURN} {p[1].value};', p[1].node)
 
     def p_empty(self, p):
         """
         empty :
         """
-        pass
+        p[0] = Node()
 
     def p_asig(self, p):
         """
         asig : memoryVariable '=' expr
         """
         self.current_table.put(VariableSymbol(p[1], p[3].tipus))
-        print(f'{self.tab()}{p[1]} = {p[3].value};')
-        p[0] = p[1:]
+        node = Node(f'{self.tab()}{p[1]} = {p[3].value};', p[3].node)
+        p[0] = node
 
     def p_memoryVariable_identifier(self, p):
         """
@@ -446,6 +503,7 @@ class Parser:
             raise CompileException(
                 self, f"Too many arguments for function {p[1]}")
 
+        prec = Node()
         for i, expr in enumerate(reversed(p[3])):
             actual_type = expr.tipus
             ident = expr.value
@@ -454,10 +512,10 @@ class Parser:
             if expected_type != actual_type:
                 raise CompileException(
                     self, f"Argument {ident} type is {actual_type} and should be {expected_type}")
-            print(f'{self.tab()}param {ident}')
+            prec = Node(f'{self.tab()}param {ident}', prec)
 
-        print(f'{self.tab()}call {p[1]}')
-        p[0] = Expr(funk.type, '$SP')
+        node = Node(f'{self.tab()}call {p[1]}', prec)
+        p[0] = Expr(funk.type, '$SP', node)
 
     def p_funkcall_empty(self, p):
         """
@@ -473,8 +531,8 @@ class Parser:
             raise CompileException(
                 self, f"Function {p[1]} doesn't accept any argument.")
 
-        print(f'{self.tab()}call {p[1]}')
-        p[0] = Expr(funk.type, '$SP')
+        node = Node(f'{self.tab()}call {p[1]}')
+        p[0] = Expr(funk.type, '$SP', node)
 
     def p_expr_list(self, p):
         """
@@ -526,9 +584,10 @@ class Parser:
         else:
             raise CompileException(
                 self, f"Not supported types for operating the operation {p[2]}")
-        print(
-            f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};')
-        p[0] = Expr(Integer(), tmp)
+        antec = Node(None, p[1].node, p[3].node)
+        node = Node(
+            f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_arit[p[2]]} {p[3].value};', antec)
+        p[0] = Expr(Integer(), tmp, node)
 
     def p_expr_boolop(self, p):
         """
@@ -540,9 +599,10 @@ class Parser:
             raise CompileException(
                 self, f"Not supported types for operating the operation {p[2]}")
         tmp = self.add_variable(Boolean())
-        print(
-            f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_bool[p[2]]} {p[3].value};')
-        p[0] = Expr(Boolean(), tmp)
+        antec = Node(None, p[1].node, p[3].node)
+        node = Node(
+            f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_bool[p[2]]} {p[3].value};', antec)
+        p[0] = Expr(Boolean(), tmp, node)
 
     def p_expr_boolcomparison(self, p):
         """
@@ -555,9 +615,10 @@ class Parser:
         """
         if p[1].tipus == p[3].tipus or isinstance(p[1].tipus, (Float, Integer)) and isinstance(p[3].tipus, (Float, Integer)):
             tmp = self.add_variable(Boolean())
-            print(
-                f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_rel[p[2]]} {p[3].value};')
-            p[0] = Expr(Boolean(), tmp)
+            antec = Node(None, p[1].node, p[3].node)
+            node = Node(
+                f'{self.tab()}{tmp} = {p[1].value} {self.dict_ops_rel[p[2]]} {p[3].value};', antec)
+            p[0] = Expr(Boolean(), tmp, node)
         else:
             raise CompileException(
                 self, f"Not supported types for operating the operation {p[2]}")
@@ -570,32 +631,32 @@ class Parser:
             raise CompileException(
                 self, f"Not supported types for operating the operation {p[0]}")
         tmp = self.add_variable(p[2].tipus)
-        print(f'{self.tab()}{tmp} = NOT {p[2].value};')
-        p[0] = Expr(Boolean(), tmp)
+        node = Node(f'{self.tab()}{tmp} = NOT {p[2].value};', p[2].node)
+        p[0] = Expr(Boolean(), tmp, node)
 
     def p_expr_const_int(self, p):
         """
         expr :   INTEGER_VALUE
         """
-        p[0] = Expr(Integer(), p[1])
+        p[0] = Expr(Integer(), p[1], Node())
 
     def p_expr_const_float(self, p):
         """
         expr :   FLOAT_VALUE
         """
-        p[0] = Expr(Float(), p[1])
+        p[0] = Expr(Float(), p[1], Node())
 
     def p_expr_const_char(self, p):
         """
         expr :   CHAR_VALUE
         """
-        p[0] = Expr(Char(), p[1])
+        p[0] = Expr(Char(), p[1], Node())
 
     def p_expr_const_bool(self, p):
         """
         expr :   BOOL_VALUE
         """
-        p[0] = Expr(Boolean(), p[1])
+        p[0] = Expr(Boolean(), p[1], Node())
 
     def p_expr_ident(self, p):
         """
@@ -603,7 +664,7 @@ class Parser:
         """
         var = self.current_table.get(p[1])
         if var:
-            p[0] = Expr(var.type, p[1])
+            p[0] = Expr(var.type, p[1], Node())
         else:
             raise CompileException(self, f"{p[1]} not found.")
 
@@ -615,8 +676,8 @@ class Parser:
             raise CompileException(
                 f"RESTA is not allowed for type {p[2].tipus}")
         tmp = self.add_variable(p[2].tipus)
-        print(f'{self.tab()}{tmp} = URESTA {p[2].value};')
-        p[0] = Expr(p[2].tipus, tmp)
+        node = Node(f'{self.tab()}{tmp} = URESTA {p[2].value};', p[2].node)
+        p[0] = Expr(p[2].tipus, tmp, node)
 
     def p_expr_usuma(self, p):
         """
@@ -626,8 +687,8 @@ class Parser:
             raise CompileException(
                 f"SUMA is not allowed for type {p[2].tipus}")
         tmp = self.add_variable(p[2].tipus)
-        print(f'{self.tab()}{tmp} = USUMA {p[2].value};')
-        p[0] = Expr(p[2].tipus, tmp)
+        node = Node(f'{self.tab()}{tmp} = USUMA {p[2].value};', p[2].node)
+        p[0] = Expr(p[2].tipus, tmp, node)
 
     def add_variable(self, tipus: Type):
         name = "tmp" + f"{self.current_table.length()}"

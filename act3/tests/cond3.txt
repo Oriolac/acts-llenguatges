@@ -1,0 +1,9 @@
+if True {
+    a = 2;
+    b = 3;
+} elif False {
+    c = 3;
+} else {
+    k = -3;
+}
+b = 3;

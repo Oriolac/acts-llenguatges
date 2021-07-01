@@ -1,0 +1,2 @@
+a = True == True;
+b = a and True;
