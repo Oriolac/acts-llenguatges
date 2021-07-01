@@ -60,27 +60,34 @@ class Char(Type):
 class List(Type):
 
     def __init__(self, exprs: List[Expr] = []):
+        self.exprs: dict = dict()
+        acc = 0
+        for expressio in exprs:
+            self.exprs[acc] = expressio
+            acc += expressio.tipus.getSize()
         if exprs == []:
             self.elementsType = []
-            self.type = None
+            self.tipus: Type = None
         else:
-            print(exprs)
             self.elementsType = list(map(lambda x: x.tipus, exprs))
             for i, elem  in enumerate(self.elementsType):
                 if not self.elementsType[i-1].isInstance(self.elementsType[i]):
                     raise CompileException("Not correct types")
-            self.type = Num() if isinstance(self.elementsType[0], (Float, Integer)) else self.elementsType[0]
+            self.tipus = Num() if isinstance(self.elementsType[0], (Float, Integer)) else self.elementsType[0]
         self.numElements: int = len(exprs)
 
     def getSize(self):
         return sum(map(lambda x: x.getSize(), self.elementsType))
+
+    def getIndividualSize(self):
+        print(self.elementsType)
     
     def isInstance(self, obj):
         if not isinstance(obj, List):
             return False
-        if isinstance(self.elementType, List):
-            return obj.elementType.isInstance(self.elementType)
-        return self.elementType.isInstance(obj.elementType)
+        if isinstance(self.tipus, List):
+            return obj.tipus.isInstance(self.tipus)
+        return self.tipus.isInstance(obj.tipus)
 
     def __str__(self):
-        return f"List{self.type})[{self.numElements}]{self.elementsType}"
+        return f"List of {self.tipus} [numElements={self.numElements}, elementsType={self.elementsType}]"

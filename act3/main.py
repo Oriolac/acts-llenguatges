@@ -458,17 +458,32 @@ class Parser:
 
     def p_asig(self, p):
         """
-        asig : memoryVariable '=' expr
+        asig : IDENTIFIER '=' expr
         """
         self.current_table.put(VariableSymbol(p[1], p[3].tipus))
         node = Node(f'{self.tab()}{p[1]} = {p[3].value};', p[3].node)
         p[0] = node
 
-    def p_memoryVariable_identifier(self, p):
+    def p_asig_array(self, p):
         """
-        memoryVariable : IDENTIFIER
+        asig : IDENTIFIER '[' expr ']' '=' expr
         """
-        p[0] = p[1]
+        var = self.current_table.get(p[1])
+        if not var:
+            raise CompileException(self, f"{p[1]} not found.")
+        if not isinstance(var.type, List):
+            raise CompileException(self, f"{p[1]} is not a list")
+        if not isinstance(p[3].tipus, Integer):
+            raise CompileException(self, f"Index is not an integer")
+        if not var.type.tipus.isInstance(p[6].tipus):
+            raise CompileException(self, f"Expression does not match types.")
+        intvalue = int(p[3].value)
+        items = list(var.type.exprs.keys())
+        size = items[intvalue]
+        memoryVar = f'{var.name}@{size}'
+        self.current_table.put(VariableSymbol(memoryVar, p[6].tipus))
+        node = Node(f'{self.tab()}{memoryVar} = {p[6].value};', p[6].node)
+        p[0] = node
 
     def p_paramscall(self, p):
         """
@@ -543,11 +558,13 @@ class Parser:
             tipus = List()
             tmp = self.add_variable(tipus)
         else:
-            print(p[2])
             tipus = List(p[2])
-            print(tipus)
             tmp = self.add_variable(tipus)
-        p[0] = Expr(tipus=tipus, value=tmp)
+        prec = Node()
+        for size, elem in tipus.exprs.items():
+            prec = Node(f"{self.tab()}{tmp}@{size} = {elem.value}", prec)
+        expr = Expr(tipus=tipus, value=tmp, node=prec)
+        p[0] = expr
 
     def p_listElem(self, p):
         """
@@ -559,7 +576,6 @@ class Parser:
         else:
             if not p[1].tipus.isInstance(p[3][-1].tipus):
                 raise CompileException(self, "List is not the same tipus")
-
             p[0] = [p[1]] + p[3]
 
     def p_expr_funkcall(self, p):
@@ -668,6 +684,26 @@ class Parser:
         else:
             raise CompileException(self, f"{p[1]} not found.")
 
+    def p_expr_arrayvalue(self, p):
+        """
+        expr : IDENTIFIER '[' expr ']'
+        """
+        var = self.current_table.get(p[1])
+        if not var:
+            raise CompileException(self, f"{p[1]} not found.")
+        if not isinstance(var.type, List):
+            raise CompileException(self, f"{p[1]} is not a list")
+        if not isinstance(p[3].tipus, Integer):
+            raise CompileException(self, f"Index is not an integer")
+        if var:
+            intvalue = int(p[3].value)
+            items = list(var.type.exprs.keys())
+            size = items[intvalue]
+            tipus = var.type.exprs[size].tipus
+            tmp = self.add_variable(p[3].tipus)
+            node = Node(f'{self.tab()}{tmp} = {var.name}@{size};', p[3].node)
+            p[0] = Expr(tipus, tmp, node)
+
     def p_expr_uresta(self, p):
         """
         expr :  RESTA expr  %prec URESTA
@@ -689,6 +725,7 @@ class Parser:
         tmp = self.add_variable(p[2].tipus)
         node = Node(f'{self.tab()}{tmp} = USUMA {p[2].value};', p[2].node)
         p[0] = Expr(p[2].tipus, tmp, node)
+
 
     def add_variable(self, tipus: Type):
         name = "tmp" + f"{self.current_table.length()}"
