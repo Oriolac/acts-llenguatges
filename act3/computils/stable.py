@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict
-from .expr import Expr, Type
+from typing import Dict, Optional
+from .expr import Type
 
 from abc import ABC, abstractmethod
 
@@ -30,11 +30,11 @@ class FunctionSymbol(Symbol):
 
 class SymbolTable:
 
-    def __init__(self, parent: SymbolTable, name: str):
+    def __init__(self, parent: SymbolTable, name: Optional[str] = None):
         self.symbols: Dict[Symbol] = {}
         self.name: str = name
         self.parent: SymbolTable = parent
-        self.level = parent.level + 1 if parent else 0
+        self.level = parent.level + 1 if parent and name else 0
 
 
     def put(self, symbol: Symbol):

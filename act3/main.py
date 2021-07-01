@@ -161,10 +161,11 @@ class Parser:
 
     def p_ifCond(self, p):
         """
-        ifCond : headCond '{' bodyCond '}'
+        ifCond : headCond '{' newSymbolTable bodyCond '}'
         """
-        antec = Node(None, p[1][1], p[3])
+        antec = Node(None, p[1][1], p[4])
         node = Node(f"{self.tab()}Label {p[1][0]}:", antec)
+        self.current_table = self.current_table.parent
         self.level_if += 1
         p[0] = node
 
@@ -188,10 +189,11 @@ class Parser:
 
     def p_elseCond_else(self, p):
         """
-        elseCond :   ELSE '{' bodyCond '}'
+        elseCond :   ELSE '{' newSymbolTable bodyCond '}'
         """
         self.level_if -= 1
-        p[0] = Node(None, p[3])
+        self.current_table = self.current_table.parent
+        p[0] = Node(None, p[4])
 
     def p_elseCond_noop(self, p):
         """
@@ -212,10 +214,11 @@ class Parser:
 
     def p_headElifCond(self, p):
         """
-        headElifCond : elifCond  '{' bodyCond '}'
+        headElifCond : elifCond  '{' newSymbolTable bodyCond '}'
         """
-        antec = Node(None, p[1][1], p[3])
+        antec = Node(None, p[1][1], p[4])
         p[0] = Node(f"{self.tab()}Label {p[1][0]}:", antec)
+        self.current_table = self.current_table.parent
         self.level_if += 1
 
     def p_elseCond_elif(self, p):
@@ -238,12 +241,19 @@ class Parser:
 
     def p_forcond(self, p):
         """
-        forcond : FOR '(' asig ';' checkAssig ';' forasigs ')' '{' forBody '}'
+        forcond : newSymbolTable FOR '(' asig ';' checkAssig ';' forasigs ')' '{' forBody '}'
         """
-        left = Node(None, p[3], p[5][1])
-        right =Node(None, p[10], p[7])
+        left = Node(None, p[4], p[6][1])
+        right =Node(None, p[11], p[8])
         node = Node(None, left, right)
-        p[0] =  p[5][0], node
+        self.current_table = self.current_table.parent
+        p[0] =  p[6][0], node
+
+    def p_newSymbolTable(self, p):
+        """
+        newSymbolTable : empty
+        """
+        self.current_table = SymbolTable(self.current_table)
 
     def p_forasigs(self, p):
         """
@@ -266,7 +276,7 @@ class Parser:
         startLabel : empty
         """
         etiq = self.add_cond_label()
-        node = Node(f"{self.tab()}Label {etiq}")
+        node = Node(f"{self.tab()}Label {etiq}:")
         self.level_if += 1
         p[0] = etiq, node
 
@@ -280,18 +290,19 @@ class Parser:
 
     def p_repeat(self, p):
         """
-        repeat : startRepeat REPEAT '{' repeatBody '}' UNTIL '(' expr ')'
+        repeat : startRepeat REPEAT '{' newSymbolTable repeatBody '}' UNTIL '(' expr ')'
         """
-        left = Node(None, p[1][1], p[4])
-        right = Node(None, p[8].node)
+        left = Node(None, p[1][1], p[5])
+        right = Node(None, p[9].node)
         antec = Node(None, left, right)
-        cond = p[8].value
+        cond = p[9].value
         tmp = self.add_variable(Boolean())
         first = Node(f"{self.tab()}{tmp} = NOT {cond}")
         second = Node(f"{self.tab()}if false {tmp} go to {p[1][0]}")
         post = Node(None, first, second)
         node = Node(None, antec, post)
         self.level_if -= 1
+        self.current_table = self.current_table.parent
         p[0] = node
 
     def p_startRepeat(self, p):
@@ -312,7 +323,7 @@ class Parser:
 
     def p_loop(self, p):
         """
-        loop : headWhile footWhile
+        loop : headWhile newSymbolTable footWhile
         """
         antec = Node(None, p[1][1], p[2])
         first = Node(f"{self.tab()}goto {p[1][0]}")
@@ -323,6 +334,7 @@ class Parser:
         self.level_if -= 1
         left = Node(None, antec, first)
         right = Node(None, second, third)
+        self.current_table = self.current_table.parent
         p[0] = Node(None, left, right)
 
     def p_headWhile(self, p):
@@ -726,6 +738,8 @@ class Parser:
         node = Node(f'{self.tab()}{tmp} = USUMA {p[2].value};', p[2].node)
         p[0] = Expr(p[2].tipus, tmp, node)
 
+    def p_error(self, p):
+        pass
 
     def add_variable(self, tipus: Type):
         name = "tmp" + f"{self.current_table.length()}"
